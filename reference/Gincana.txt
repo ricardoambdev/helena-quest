@@ -1,0 +1,16 @@
+Funciona assim: quando as equipes encontram o primeiro QR code (pode estar espalhado na cidade inteira), por meio de uma dica previamente informada, o sistema verifica se o GPS está correto e se o aluno está no local correto. Um pequeno texto é exibido e lido em voz alta no aplicativo. Com base nesse texto, será feita uma pergunta que também será lida, e a resposta deve estar certa para ser dada a dica para a próxima localização. Ao chegarem na próxima localização ocorre o mesmo processo. Até que na prova final todas as dicas devem ser usadas para desvendar uma dica ainda maior e mais dificil para abrir um cofre com 6 digitos. O cofre será uma tela do sistema que ficará em um computador e quando esse cofre for aberto terá a dica e a frase para proseeguir com a gincana e fazer os pontos da prova.
+
+- O aluno alem de ouvir, poderá ler também na tela. e abaixo terá a pergunta e um botão escrito responder. que se clicado abre um modal de resposta.  
+- A primeira dica será entregue através de um envelope lacrado para cada equipe. Nesse envelope terá o nome de usuário e senha para o aplicativo, um qr code para baixar o aplicativo e a primeira dica do local.
+- O layout deve usar laranja (FF6600), Preto (000000) e Branco (FFFFFF), Usando tailwind e uma biblioteca que mais se adeque ao estilo do aplicativo.
+- Cada Prova deve ser respondida com um número de 4 a 8 digitos. Esses numeros (todos juntos, mas de trás para frente) formarão a chave para abrir  a possíbilidade da equipe responder o enigma final. O enigma final será uma palavra. No enigma final diversos QR codes serão espalhados pela escola o que cada qr code terá um desfio que resultará em uma letra, sendo assim, formará um conjunto de letras que em anagrama formará a palavra passa para abrir o desafio final. Somente serão possiveis três tentativas para abrir o desafio final, e caso isso ocorra a equipe deverá aguardar 2 horas.
+- O Raio deve ser de 30 metros do QRcode
+- O Sistema usará somente TTS automático.
+- As perguntas devbem ser respondidas obrigatoriamente com numeros de 4 a 8 digitos. Jamais outra forma.
+- Na pergunta pode ser exibida uma imagem. Mas não é obrigatória.
+- Antes de Digitar a resposta as equipes devem enviar para o sistema uma foto deles no local. Ai então o sistema abre para a resposta da pergunta.
+- As equipes na rua podem enviar o tempo todo audios que serão tocados no telão.
+- Gostei muito do local em tempo real. Em um telão. Que mostra em tempo real onde o aplicativo conectado está. Onde no centro em 4x3 mostra o mapa ao lado mostra uma barra de progresso da equipe. Mostra também a pontuação na prova de caça ao tesouro. e as fotos e audios que as equipes enviam.
+- Esse telão é aberto ao público e pode ser visto por qualquer um com o endereço.
+- As equipes poderão comprar dicas que poderão ajudar a encontrar o local. Todas as dicas e textos deverão ser cadastrados no sistema.
+- O resto achei bem interessante inclusive as sugestões. Me dê uma descrição para apresentar com todos aspectos da prova.
