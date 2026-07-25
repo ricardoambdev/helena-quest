@@ -77,6 +77,42 @@ Antes de marcar uma etapa como concluída, executar:
 - Não publicar em produção sem confirmar
 - Não usar comandos `rm` irreversíveis sem confirmar
 
+### 7. Skill OBRIGATÓRIA de Design de UI — `frontend-design`
+
+**SEMPRE** que for criar ou refatorar qualquer **tela**, **componente visual**, **página** ou **layout** das três camadas do sistema (Painel Admin Livewire, App Mobile Flutter, Painel Público/Telão), **invocar a skill `frontend-design`** **antes** de escrever qualquer código.
+
+Cobertura:
+- **`app/Livewire/...`** → componentes Livewire/Blade (admin, telão Alpine.js)
+- **`resources/views/...`** → views Blade (admin, telão)
+- **`lib/screens/...`** → telas do Flutter (mobile)
+- **`lib/widgets/...`** → widgets visuais Flutter
+- Quaisquer composables/views para protótipos ou ajustes visuais
+
+#### Procedimento obrigatório
+
+1. **Carregar a skill** via ferramenta `skill` com `name: "frontend-design"`.
+2. **Aplicar o processo em duas passadas** definido na skill:
+   - *Passada 1*: brainstorm curto (paleta nomeada com 4–6 hex, 2+ papéis tipográficos, layout conceitual, elemento assinatura).
+   - *Passada 2*: revisar o plano contra o brief do projeto e revisar os AI-defaults do meio (creme/terracota; preto/acid-green; broadsheet) para garantir que **nenhuma escolha vire templated**.
+3. **Respeitar o Design System já definido em `HELENA-QUEST.md` § 5 e § 12**:
+   - Paleta base: `#FF6600` (laranja principal), `#000000` (preto/fundo escuro), `#FFFFFF` (branco/claro), `#CC5200` (laranja escuro hover), `#F5F5F5` (cinza claro), `#CCCCCC` (cinza médio).
+   - Tipografia: Inter (bold/extra-bold display, regular body) + Nunito (variação juvenil, opcional) + JetBrains Mono (números).
+   - Modos: Light (admin/app) e Dark (telão).
+   - Acessibilidade: contraste mínimo 4.5:1, `prefers-reduced-motion` respeitado, foco visível, cor nunca como único indicador de estado.
+   - Anti-patterns: **nunca** usar emojis como ícones (Material Icons/Heroicons), **nunca** hover com scale, sempre feedback visual em botões.
+4. **Derivar cada decisão visual** (cor, fonte, espaçamento, raio, sombra) das escolhas do plano da skill — **nunca** cair em defaults genéricos sem justificativa explícita.
+5. **Implementar Mobile-First** para admin e app; **1920×1080** como referência fixa para o telão.
+6. **Documentar a escolha final** no log do dia (`docs/logs/YYYY-MM-DD.md`), na seção "Decisões de UI", resumindo os tokens eleitos (cor, tipo, layout, assinatura) e a justificativa.
+
+#### Exceções (NÃO exigem a skill)
+
+- Código puramente backend (Controllers, Services, Migrations, Jobs, Models, sem render visual).
+- Configuração de rotas, broadcasting, filas, .env.
+- APIs REST (retornam JSON; UI é consumida por cliente).
+- Testes automatizados.
+
+Resumo: **qualquer pixel que vire código no projeto passa pela `frontend-design`** — sem exceção.
+
 ---
 
 ## Convenções de Código
@@ -89,35 +125,46 @@ Antes de marcar uma etapa como concluída, executar:
 
 ### Flutter / Dart
 - `flutter_lints` ativado
-- Material Design 3
+- Material Design 3 (com custom theme)
 - Tema centralizado em `lib/config/theme.dart`
 - Paleta do projeto (`#FF6600`, `#000000`, `#FFFFFF`) sempre via constantes
+- Toda tela → criar primeiro o plano via skill `frontend-design` (ver § 7 acima)
 
 ---
 
 ## Estrutura de Pastas
 
 ```
-gincana/                       ← raiz
-├── app/                       ← Laravel (Models, Controllers, Livewire)
+gincana/                            ← raiz
+├── app/                            ← Laravel (Models, Controllers, Livewire)
 ├── bootstrap/
 ├── config/
 ├── database/
 ├── public/
-├── resources/                 ← Views + assets
+├── resources/                      ← Views Blade + assets
 ├── routes/
 ├── storage/
 ├── tests/
-├── vendor/                    ← ignorado pelo git
+├── vendor/                         ← ignorado pelo git
+├── android/                        ← Flutter Android (gerado por `flutter create`)
+├── ios/                            ← Flutter iOS (gerado por `flutter create`)
+├── lib/                            ← Flutter app (Dart)
+│   ├── main.dart
+│   ├── config/                     ← theme.dart, routes.dart, constants.dart
+│   ├── services/                   ← api_service, auth_service, ...
+│   ├── providers/                  ← auth_provider, stage_provider, ...
+│   ├── screens/                    ← telas
+│   └── widgets/                    ← componentes visuais
 ├── docs/
-│   ├── logs/                  ← Logs de programação (um .md por dia)
-│   ├── STRUCTURE.md           ← Estrutura do projeto
-│   └── ADR/                   ← Architectural Decision Records
-├── reference/                 ← Documentação de requisitos
-├── HELENA-QUEST.md            ← Documentação mestre
-├── CHECKLIST.md               ← Progresso da implementação (atualizar sempre)
-├── AGENTS.md                  ← Este arquivo (diretivas)
+│   ├── logs/                       ← Logs de programação (um .md por dia)
+│   ├── STRUCTURE.md                ← Estrutura do projeto
+│   └── ADR/                        ← Architectural Decision Records
+├── reference/                      ← Documentação de requisitos
+├── HELENA-QUEST.md                 ← Documentação mestre
+├── CHECKLIST.md                    ← Progresso (atualizar sempre)
+├── AGENTS.md                       ← Este arquivo (diretivas)
 ├── composer.json
+├── pubspec.yaml
 └── .env / .env.example
 ```
 
@@ -126,7 +173,8 @@ gincana/                       ← raiz
 ## Status Atual
 
 - **Fase 0.1:** ✅ Concluída (Laravel 13 + MySQL + Livewire + Reverb + Sanctum)
-- **Fase 0.2:** ⏳ Aguardando instalação manual do Flutter SDK
+- **Fase 0.2:** ✅ Concluída (Flutter 3.44.8 instalado, projeto criado na raiz, dependências adicionadas, permissões Android/iOS configuradas)
+- **Fase 1+:** ⏳ Próxima etapa — Migrations de domínio, Models, GameEngine, API, Livewire, Broadcasting
 
 ---
 

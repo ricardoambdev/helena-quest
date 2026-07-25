@@ -22,10 +22,12 @@
 - [x] App responde HTTP 200 em `/`
 
 ### 0.2 Setup Flutter
-- [ ] `flutter create --org com.helenaquest --platforms android,ios helena_quest_app` (AGUARDANDO instalação manual do SDK)
-- [ ] Adicionar dependências: `google_maps_flutter`, `mobile_scanner`, `geolocator`, `image_picker`, `audioplayers`, `http`, `provider`
-- [ ] Configurar permissões Android (`AndroidManifest.xml`)
-- [ ] Configurar permissões iOS (`Info.plist`)
+- [x] Instalar Flutter SDK 3.44.8 (instalado manualmente em `C:\flutter\flutter`)
+- [x] `flutter create --org com.helenaquest --platforms android,ios helena_quest_app` (projeto gerado na raiz `E:\Projetos\gincana`)
+- [x] Adicionar dependências: `google_maps_flutter`, `mobile_scanner`, `geolocator`, `image_picker`, `audioplayers`, `http`, `provider`, `permission_handler`
+- [x] Configurar permissões Android (`AndroidManifest.xml`): CAMERA, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, RECORD_AUDIO, INTERNET + features de hardware related
+- [x] Configurar permissões iOS (`Info.plist`): NSCameraUsageDescription, NSLocationWhenInUseUsageDescription, NSMicrophoneUsageDescription, NSPhotoLibraryUsageDescription, NSPhotoLibraryAddUsageDescription
+- [x] `flutter analyze` → "No issues found!" ✅
 
 ---
 
@@ -257,3 +259,5 @@
 | Data | Fase | Mudança |
 |------|------|---------|
 | 2026-07-23 | 0.1 | Setup Laravel 13 + MySQL + Livewire + Reverb + Sanctum — **CONCLUÍDA** |
+| 2026-07-23 | 0.2 | Flutter SDK 3.44.8 instalado, projeto criado, dependências adicionadas, permissões Android/iOS configuradas, `flutter analyze` passa — **CONCLUÍDA** |
+| 2026-07-23 | AGENTS | Adicionada diretiva § 7 obrigando uso da skill `frontend-design` antes de criar/refatorar qualquer tela ou componente visual |
