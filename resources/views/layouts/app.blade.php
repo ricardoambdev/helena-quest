@@ -12,7 +12,7 @@
                 extend: {
                     colors: {
                         ignite: '#FF6600', ember: '#CC5200', flame: '#FF8533',
-                        ink: '#0D0D0F', paper: '#FAF8F5', chalk: '#7A7468', rule: '#E0DCD3',
+                        ink: '#171A21', paper: '#FAF8F5', chalk: '#7A7468', rule: '#E0DCD3',
                     },
                     fontFamily: {
                         display: ['Inter', 'system-ui', 'sans-serif'],

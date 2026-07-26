@@ -18,7 +18,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $competition->name }} — Telao</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config={theme:{extend:{colors:{ignite:'#FF6600',ember:'#CC5200',flame:'#FF8533',ink:'#0D0D0F',paper:'#FAF8F5',chalk:'#7A7468',rule:'#E0DCD3'},fontFamily:{display:['Inter','system-ui','sans-serif'],body:['Nunito','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']},borderRadius:{card:'12px',pill:'9999px'}}}}</script>
+    <script>tailwind.config={theme:{extend:{colors:{ignite:'#FF6600',ember:'#CC5200',flame:'#FF8533',ink:'#171A21',paper:'#FAF8F5',chalk:'#7A7468',rule:'#E0DCD3'},fontFamily:{display:['Inter','system-ui','sans-serif'],body:['Nunito','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']},borderRadius:{card:'12px',pill:'9999px'}}}}</script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,600,700,800,900|nunito:400,600,700|jetbrains-mono:400,500,700" rel="stylesheet" />
     <style>

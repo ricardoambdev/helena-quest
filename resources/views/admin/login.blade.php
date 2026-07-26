@@ -14,7 +14,7 @@
                         ignite: '#FF6600',
                         ember: '#CC5200',
                         flame: '#FF8533',
-                        ink: '#0D0D0F',
+                        ink: '#171A21',
                         paper: '#FAF8F5',
                         chalk: '#7A7468',
                     },

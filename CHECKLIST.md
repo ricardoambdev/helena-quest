@@ -253,7 +253,14 @@
 - [x] Validação no cadastro de equipes: bloqueia se atingiu o limite
 - [x] Correção geral de rotas admin em Livewire + views (redirectRoute e route())
 
-### 6.5 Deploy
+### 6.5 Configurações + Root
+- [x] Migration add root role to ENUM users.role
+- [x] Usuário root: ricardoambamb.dev@gmail.com / idspispopd
+- [x] Seeder primário com root + admin
+- [x] Página de Configurações (Livewire + rota /admin/settings)
+- [x] Sidebar redesenhada: cor #171A21 (slate escuro), menu minimalista, link Configurações, logout harmonioso
+
+### 6.6 Deploy
 - [ ] Configurar Laravel Forge / Vapor
 - [ ] Configurar domínio + SSL
 - [~] Build Android (APK — bloqueado no Windows, CI necessário)
@@ -312,3 +319,4 @@
 | 2026-07-26 | 6.3 | Fix PublicChannel → Channel para Laravel 13 compatibilidade |
 | 2026-07-26 | 6.x | 7 factories criadas: Competition, Team, Proof, Stage, Hint, FinalEnigma, FinalEnigmaQrCode |
 | 2026-07-26 | 6.5 | Limite de equipes configurável: max_teams na competição (default 2), validação no TeamForm, campo na tela de configuração |
+| 2026-07-26 | 6.6 | Usuário root, migration role root, Settings page, sidebar redesenhada (cor #171A21, menu minimalista, link config, logout harmonioso) |

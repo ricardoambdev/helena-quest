@@ -20,6 +20,7 @@ use App\Livewire\Admin\StageForm;
 use App\Livewire\Admin\StageIndex;
 use App\Livewire\Admin\TeamForm;
 use App\Livewire\Admin\TeamIndex;
+use App\Livewire\Admin\Settings;
 use App\Livewire\Admin\TeamReport;
 use App\Livewire\Admin\TeamMonitor;
 use Illuminate\Support\Facades\Route;
@@ -78,5 +79,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/reports/competition', CompetitionReport::class)->name('reports.competition');
         Route::get('/reports/team', TeamReport::class)->name('reports.team');
         Route::get('/reports/proof', ProofReport::class)->name('reports.proof');
+
+        Route::get('/settings', \App\Livewire\Admin\Settings::class)->name('settings');
     });
 });
