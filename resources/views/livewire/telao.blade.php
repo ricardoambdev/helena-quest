@@ -25,9 +25,9 @@
         </header>
 
         {{-- ======== MAPA — largura total abaixo do header ======== --}}
-        <section class="shrink-0 w-full" wire:key="map-section" style="height:38%; min-height:260px;">
+        <section class="shrink-0 w-full" wire:key="map-section" style="height:400px;">
             <div class="relative w-full h-full bg-white/[0.03] rounded-card overflow-hidden" wire:ignore>
-                <div id="telao-map" class="absolute inset-0"></div>
+                <div id="telao-map" class="absolute inset-0 rounded-card"></div>
                 <div id="map-fallback" class="absolute inset-0 flex items-center justify-center text-chalk text-sm">
                     Carregando mapa...
                 </div>
@@ -189,10 +189,22 @@
                 this.waitForMap();
             },
 
+            mapsTimeout: null,
+
             waitForMap() {
-                if (typeof google !== 'undefined' && google.maps) {
+                if (typeof google !== 'undefined' && google.maps && google.maps.Map) {
                     this.initMap();
                 } else {
+                    var el = document.getElementById('telao-map');
+                    if (el) {
+                        document.getElementById('map-fallback').textContent = 'Aguardando Google Maps...';
+                    }
+                    if (this.mapsTimeout === null) {
+                        this.mapsTimeout = setTimeout(function() {
+                            var fb = document.getElementById('map-fallback');
+                            if (fb) fb.innerHTML = 'Mapa indisponivel — ative billing no Google Cloud Console';
+                        }.bind(this), 15000);
+                    }
                     setTimeout(this.waitForMap.bind(this), 400);
                 }
             },
@@ -209,17 +221,22 @@
                 var el = document.getElementById('telao-map');
                 if (!el) return;
                 var fallback = document.getElementById('map-fallback');
-                this.map = new google.maps.Map(el, {
-                    zoom: 15,
-                    center: { lat: -21.996, lng: -47.426 },
-                    disableDefaultUI: false,
-                    mapTypeControl: false,
-                    streetViewControl: false,
-                    fullscreenControl: false,
-                });
-                if (fallback) fallback.style.display = 'none';
-                this.mapInitialized = true;
-                this.loadMapLocations();
+                try {
+                    this.map = new google.maps.Map(el, {
+                        zoom: 15,
+                        center: { lat: -21.996, lng: -47.426 },
+                        disableDefaultUI: false,
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                        fullscreenControl: false,
+                    });
+                    if (fallback) fallback.style.display = 'none';
+                    if (this.mapsTimeout) { clearTimeout(this.mapsTimeout); this.mapsTimeout = null; }
+                    this.mapInitialized = true;
+                    this.loadMapLocations();
+                } catch (e) {
+                    if (fallback) fallback.textContent = 'Erro ao carregar mapa: ' + e.message;
+                }
             },
 
             loadMapLocations() {
@@ -338,4 +355,4 @@
         }
     });
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&loading=async" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}" async defer></script>
