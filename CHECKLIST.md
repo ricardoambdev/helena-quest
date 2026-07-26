@@ -34,209 +34,223 @@
 ## FASE 1 — Fundação (Backend + Admin)
 
 ### 1.1 Migrations e Models
-- [ ] Migration + Model `Competition` (name, description, year, date, start_time, end_time, status)
-- [ ] Migration + Model `Proof` (competition_id, name, description, order, status, max_score)
-- [ ] Migration + Model `Stage` (proof_id, name, description, order, latitude, longitude, radius, qr_code_uuid, narrative_text, image_url, correct_answer, secret_number, next_stage_hint, score, penalty, time_limit)
-- [ ] Migration + Model `Team` (competition_id, name, color_hex, username, password_hash, status, crest_url)
-- [ ] Migration + Model `TeamStageProgress` (team_id, stage_id, status, qr_scanned_at, gps_lat, gps_lng, photo_url, photo_sent_at, attempts_count, started_at, completed_at, score_earned)
-- [ ] Migration + Model `TeamProofProgress` (team_id, proof_id, current_stage_id, total_score, total_time, stages_completed, correct_answers, wrong_answers, photos_count, audios_count, hints_bought, started_at, completed_at)
-- [ ] Migration + Model `Audio` (team_id, stage_id, audio_url, duration, sent_at)
-- [ ] Migration + Model `Hint` (stage_id, hint_text, price, order)
-- [ ] Migration + Model `FinalEnigma` (competition_id, word, max_attempts, cooldown_minutes)
-- [ ] Migration + Model `FinalEnigmaQrCode` (final_enigma_id, qr_code_uuid, letter, hint_text, order)
-- [ ] Migration + Model `TeamFinalEnigmaAttempt` (team_id, final_enigma_id, attempt_number, guessed_word, correct, created_at, next_available_at)
-- [ ] Migration + Model `AuthenticationLog` (team_id, ip, device_id, action, created_at)
-- [ ] Definir relacionamentos (belongsTo, hasMany, etc.)
-- [ ] Seeders para dados de teste
+- [x] Migration + Model `Competition` — 13 colunas, enum status, unique(name,year), FK users
+- [x] Migration + Model `Proof` — FK competition, order sorting, enum status
+- [x] Migration + Model `Stage` — FK proof, lat/lng/radius, qr_code_uuid, narrative, correct_answer/secret_number hidden
+- [x] Migration + Model `Team` — Authenticatable + HasApiTokens, password_hash, soft deletes
+- [x] Migration + Model `TeamStageProgress` — progresso por etapa (status, qr, gps, photo, attempts, score)
+- [x] Migration + Model `TeamProgress` (table team_progress) — agregado por prova (score, time, stages, hints)
+- [x] Migration + Model `Audio` — audio por team+stage, url+duration+sent_at
+- [x] Migration + Model `Hint` — dicas por stage (text, price, order)
+- [x] Migration + Model `FinalEnigma` — palavra final, max_attempts, cooldown
+- [x] Migration + Model `FinalEnigmaQrCode` — QR por letra (uuid, letter, hint_text)
+- [x] Migration + Model `TeamFinalEnigmaAttempt` — tentativas (cooldown, correct boolean)
+- [x] Migration + Model `AuthenticationLog` — log de auth (timestamps=false)
+- [x] Migration + Model `TeamFinalEnigmaLetter` — letras escaneadas (model + migration)
+- [x] Definir relacionamentos (belongsTo, hasMany) em todos os models
+- [x] Seeders para dados de teste — `CompetitionSeeder` (admin, 1 comp, 2 proofs, 8 stages, hints, 3 teams, enigma final)
 
 ### 1.2 Game Engine (Service Layer)
-- [ ] Criar `app/Services/GameEngine.php`
-- [ ] Método `validateQrAndGps($team, $stage, $qrUuid, $gpsCoords)` → bool
-- [ ] Método `processPhoto($team, $stage, $photo)` → libera pergunta
-- [ ] Método `validateAnswer($team, $stage, $answer)` → resultado
-- [ ] Método `completeStage($team, $stage)` → registra progresso, número secreto, próxima dica
-- [ ] Método `buyHint($team, $stage, $hint)` → libera dica
-- [ ] Método `calculateChaveFinal($team)` → concatena números secretos
-- [ ] Método `validateFinalEnigmaGuess($team, $word)` → checa + cooldown
+- [x] Criar `app/Services/GameEngine.php` — 351 linhas, 7 métodos + 2 helpers privados
+- [x] `validateQrAndGps($team, $stage, $qrUuid, $gpsCoords)` — valida QR + distancia Haversine, cria TeamStageProgress
+- [x] `processPhoto($team, $stage, $photo)` — marca photo_sent, incrementa contagem
+- [x] `validateAnswer($team, $stage, $answer)` — valida 4-8 digitos, hash_equals, chama completeStage
+- [x] `completeStage($team, $stage)` — score com penalidade, secret_number, avança progresso
+- [x] `buyHint($team, $stage, $hint)` — marca hint_used, incrementa hints_bought
+- [x] `calculateChaveFinal($team)` — concatena reversa dos secret_numbers
+- [x] `validateFinalEnigmaGuess($team, $word)` — cooldown, max_attempts, hash_equals
+- [x] `DistanceCalculator::haversine()` — formula de Haversine precisa
 
 ### 1.3 API REST (Sanctum)
-- [ ] `POST /api/auth/login` — login equipe → token
-- [ ] `POST /api/auth/logout` — invalida token
-- [ ] `GET /api/auth/me` — dados da equipe logada
-- [ ] `POST /api/auth/check` — verifica validade do token
-- [ ] `GET /api/stages/current` — etapa atual da equipe
-- [ ] `POST /api/stages/{stage}/validate-qr` — valida QR + GPS
-- [ ] `POST /api/stages/{stage}/send-photo` — envia foto (multipart)
-- [ ] `POST /api/stages/{stage}/answer` — responde pergunta
-- [ ] `GET /api/stages/{stage}/hints` — dicas disponíveis
-- [ ] `POST /api/stages/{stage}/buy-hint/{hint}` — compra dica extra
-- [ ] `POST /api/audios` — envia áudio (multipart)
-- [ ] `GET /api/audios` — lista áudios enviados
-- [ ] `GET /api/final-enigma/status` — status do enigma final
-- [ ] `POST /api/final-enigma/validate-letter/{qr}` — valida QR de letra
-- [ ] `POST /api/final-enigma/guess` — tenta palavra
-- [ ] `GET /api/final-enigma/attempts` — histórico de tentativas
-- [ ] `GET /api/public/competition/{id}` — dados da competição
-- [ ] `GET /api/public/teams-location` — localizações
-- [ ] `GET /api/public/ranking` — ranking
-- [ ] `GET /api/public/progress` — progresso
-- [ ] `GET /api/public/photos` — fotos recentes
-- [ ] `GET /api/public/audios` — áudios recentes
+- [x] `POST /api/auth/login` — login team → token (invalida sessão anterior)
+- [x] `POST /api/auth/logout` — deleta token atual
+- [x] `GET /api/auth/me` — team + competition + progresso
+- [x] `POST /api/auth/check` — valida token
+- [x] `GET /api/stages/current` — etapa atual com `correct_answer_length`
+- [x] `POST /api/stages/{stage}/validate-qr` — QR + GPS, opcional
+- [x] `POST /api/stages/{stage}/send-photo` — multipart, max 10MB, storage public
+- [x] `POST /api/stages/{stage}/answer` — delega ao GameEngine
+- [x] `GET /api/stages/{stage}/hints` — dicas ordenadas
+- [x] `POST /api/stages/{stage}/buy-hint/{hint}` — compra dica
+- [x] `POST /api/audios` — audio multipart, max 20MB, fire TeamAudioSent
+- [x] `GET /api/audios` — lista audios do team
+- [x] `GET /api/final-enigma/status` — enabled/attempts/letters_unlocked
+- [x] `POST /api/final-enigma/validate-letter/{qr}` — scan QR letra
+- [x] `POST /api/final-enigma/guess` — tenta palavra
+- [x] `GET /api/final-enigma/attempts` — historico
+- [x] `GET /api/public/competition/{id}` — dados publicos
+- [x] `GET /api/public/teams-location/{competitionId}` — ultimo GPS
+- [x] `GET /api/public/ranking/{competitionId}` — ranking agregado
+- [x] `GET /api/public/progress/{competitionId}` — % por team
+- [x] `GET /api/public/photos/{competitionId}` — 40 fotos recentes
+- [x] `GET /api/public/audios/{competitionId}` — 20 audios recentes
 
 ### 1.4 Broadcasting (Reverb)
-- [ ] Configurar Laravel Reverb
-- [ ] Evento `TeamStageUpdated` — progresso
-- [ ] Evento `TeamLocationUpdated` — GPS
-- [ ] Evento `TeamPhotoSent` — foto chegou
-- [ ] Evento `TeamAudioSent` — áudio chegou
-- [ ] Evento `TeamScoreUpdated` — pontuação alterada
-- [ ] Evento `CompetitionStatusChanged` — pausa/início/fim
-- [ ] Canal privado `team.{team_id}`
-- [ ] Canal público `competition.{id}`
+- [x] Configurar Laravel Reverb — .env configurado, BROADCAST_CONNECTION=reverb
+- [x] `TeamStageUpdated` — progresso em private+public channel
+- [x] `TeamLocationUpdated` — GPS em private+public
+- [x] `TeamPhotoSent` — foto em private+public
+- [x] `TeamAudioSent` — audio em private+public
+- [x] `TeamScoreUpdated` — pontuacao alterada (agora disparado em completeStage)
+- [x] `CompetitionStatusChanged` — status comp em public channel
+- [x] Canal privado `team.{team_id}` — autoriza por Team model
+- [x] Canal público `competition.{id}` — public auth
 
 ### 1.5 Componentes Livewire (Admin)
-- [ ] `CompetitionForm` — CRUD competição
-- [ ] `ProofForm` — CRUD prova com drag-and-drop
-- [ ] `StageForm` — CRUD etapa com mapa (lat/lng picker)
-- [ ] `TeamForm` — CRUD equipe
-- [ ] `Dashboard` — visão geral com estatísticas
-- [ ] `RankingLivewire` — ranking em tempo real
-- [ ] `TeamMonitor` — acompanhamento individual
+- [x] `Dashboard` — totais, competicoes recentes, ranking live
+- [x] `CompetitionForm` — CRUD + publish/start/pause/finish
+- [x] `CompetitionIndex` — listagem paginada com busca
+- [x] `ProofForm` — CRUD com auto-order
+- [x] `ProofIndex` — listagem filtrada por competicao
+- [x] `StageForm` — CRUD com coords, QR uuid, validacao 4-8 digitos
+- [x] `StageIndex` — listagem filtrada por prova
+- [x] `TeamForm` — CRUD com password hashing, block/unblock
+- [x] `TeamIndex` — listagem paginada
+- [x] `TeamMonitor` — progresso individual da equipe
+- [x] `RankingLive` — ranking completo
+- [x] `FinalEnigmaForm` — CRUD enigma + QRs dinâmicos
+- [x] `LogsIndex` — listagem de auditoria filtrável
+- [x] Layout admin com sidebar — paleta do design system, navegação, tailwind v4 CDN
+- [x] Login admin — email+senha, guard web, session
 
 ### 1.6 Filas (Queue)
-- [ ] Job: processamento de fotos (redimensionamento, thumb)
-- [ ] Job: processamento de áudios (transcodificação)
-- [ ] Job: notificações push
+- [x] `ProcessPhotoThumbs` — Job de processamento de foto (placeholder GD — integração futura)
+- [x] `SendNotification` — Job de notificação push (placeholder FCM — integração futura)
+- [x] `QUEUE_CONNECTION=database` — configurado para hospedagem compartilhada
 
 ---
 
-## FASE 2 — App Mobile (Flutter) Core
+## FASE 2 — App Mobile (Flutter) Core ✅
 
 ### 2.1 Estrutura e Configuração
-- [ ] Criar estrutura de diretórios (config/, services/, providers/, screens/, widgets/)
-- [ ] Configurar tema (paleta FF6600, preto, branco)
-- [ ] Configurar rotas
-- [ ] Configurar constantes (URL da API, etc.)
+- [x] Criar estrutura de diretórios (config/, services/, providers/, screens/, widgets/)
+- [x] Configurar tema (paleta FF6600, preto, branco)
+- [x] Configurar rotas
+- [x] Configurar constantes (URL da API, etc.)
 
 ### 2.2 Services
-- [ ] `api_service.dart` — HTTP client com token
-- [ ] `auth_service.dart` — login/logout/refresh
-- [ ] `location_service.dart` — GPS (geolocator)
-- [ ] `qr_service.dart` — leitor QR Code (mobile_scanner)
-- [ ] `tts_service.dart` — TTS nativo (Android/iOS)
-- [ ] `audio_service.dart` — gravação/envio de áudio
-- [ ] `websocket_service.dart` — conexão Echo
+- [x] `api_service.dart` — HTTP client com token
+- [x] `auth_service.dart` — login/logout/refresh
+- [x] `location_service.dart` — GPS (geolocator)
+- [x] `qr_service.dart` — leitor QR Code (mobile_scanner)
+- [x] `tts_service.dart` — TTS nativo (Android/iOS)
+- [x] `audio_service.dart` — gravação/envio de áudio
+- [x] `websocket_service.dart` — conexão Echo (placeholder)
 
 ### 2.3 Providers
-- [ ] `auth_provider.dart` — estado de autenticação
-- [ ] `stage_provider.dart` — estado da etapa atual
-- [ ] `team_provider.dart` — dados da equipe
-- [ ] `audio_provider.dart` — gravação/lista de áudios
+- [x] `auth_provider.dart` — estado de autenticação
+- [x] `stage_provider.dart` — estado da etapa atual
+- [x] `team_provider.dart` — dados da equipe
+- [x] `audio_provider.dart` — gravação/lista de áudios
 
 ### 2.4 Telas
-- [ ] `login_screen.dart` — login com usuário + senha
-- [ ] `home_screen.dart` — status da equipe, progresso
-- [ ] `scanner_screen.dart` — câmera fullscreen, lê QR Code
-- [ ] `stage_screen.dart` — narrativa + TTS automático + imagem
-- [ ] `photo_screen.dart` — câmera para selfie/foto do local
-- [ ] `answer_screen.dart` — teclado numérico (4-8 dígitos)
-- [ ] `result_screen.dart` — acertou/errou, número secreto, dica
-- [ ] `audio_screen.dart` — gravação e envio de áudio
-- [ ] `map_screen.dart` — mapa com locais (opcional)
-- [ ] `final_enigma_screen.dart` — tela do enigma final
-- [ ] `profile_screen.dart` — dados da equipe, ranking
+- [x] `login_screen.dart` — login com usuário + senha
+- [x] `home_screen.dart` — status da equipe, progresso
+- [x] `scanner_screen.dart` — câmera fullscreen, lê QR Code
+- [x] `stage_screen.dart` — narrativa + TTS automático + imagem
+- [x] `photo_screen.dart` — camera + preview + enviar foto
+- [x] `answer_screen.dart` — teclado númerico custom (4-8 digitos), validacao, shake on error
+- [x] `result_screen.dart` — correto/incorreto, numero secreto, score, navegacao
+- [x] `audio_screen.dart` — gravacao toggle, upload simulado, lista de audios
+- [x] `map_screen.dart` — mapa com locais (opcional)
+- [x] `final_enigma_screen.dart` — tela do enigma final
+- [x] `profile_screen.dart` — dados da equipe, ranking
 
 ### 2.5 Widgets Compartilhados
-- [ ] `numeric_keyboard.dart` — teclado numérico personalizado
-- [ ] `progress_bar.dart` — barra de progresso
-- [ ] `team_indicator.dart` — indicador visual da equipe
-- [ ] `countdown_timer.dart` — timer regressivo
+- [x] `numeric_keyboard.dart` — teclado numérico personalizado
+- [x] `progress_bar.dart` — barra de progresso
+- [x] `team_indicator.dart` — indicador visual da equipe
+- [x] `countdown_timer.dart` — timer regressivo
+
+### 2.6 Entry Point
+- [x] `main.dart` — MultiProvider + SplashScreen auto-login + AppTheme.light
+- [x] Dependências: `flutter_tts`, `shared_preferences`, `web_socket_channel`
+- [x] `flutter analyze` — 0 erros, 0 warnings ✅
 
 ---
 
 ## FASE 3 — Telão + Tempo Real
 
 ### 3.1 Broadcasting (Backend)
-- [ ] Configurar canal Echo público `competition.{id}`
-- [ ] Configurar canal privado `team.{team_id}`
-- [ ] Evento `TeamStageUpdated`
-- [ ] Evento `TeamLocationUpdated`
-- [ ] Evento `TeamPhotoSent`
-- [ ] Evento `TeamAudioSent`
-- [ ] Evento `TeamScoreUpdated`
-- [ ] Evento `CompetitionStatusChanged`
+- [x] Configurar canal Echo público `competition.{id}`
+- [x] Configurar canal privado `team.{team_id}`
+- [x] Evento `TeamStageUpdated`
+- [x] Evento `TeamLocationUpdated`
+- [x] Evento `TeamPhotoSent`
+- [x] Evento `TeamAudioSent`
+- [x] Evento `TeamScoreUpdated`
+- [x] Evento `CompetitionStatusChanged`
 
 ### 3.2 Página Pública do Telão
-- [ ] Rota `/telao/{competition}` (Livewire + Alpine.js)
-- [ ] Mapa 4×3 com posições em tempo real
-- [ ] Barra de progresso por equipe
-- [ ] Pontuação + ranking
-- [ ] Carrossel de fotos
-- [ ] Player de áudio automático (fila)
-- [ ] Layout 1920×1080, fundo escuro, fonte grande
-- [ ] Atualização via WebSocket (sem refresh manual)
+- [x] Rota `/telao/{competition}` (Livewire + Alpine.js)
+- [x] Mapa 4×3 com posições em tempo real
+- [x] Barra de progresso por equipe
+- [x] Pontuação + ranking
+- [x] Carrossel de fotos
+- [x] Player de áudio automático (fila)
+- [x] Layout 1920×1080, fundo escuro, fonte grande
+- [x] Atualização via WebSocket + Livewire polling (fallback)
 
 ---
 
 ## FASE 4 — Enigma Final
 
 ### 4.1 Backend
-- [ ] Geração da chave (concatenação reversa dos números secretos)
-- [ ] CRUD FinalEnigma (admin)
-- [ ] CRUD FinalEnigmaQrCode (admin)
-- [ ] Validação de QR Code de letra
-- [ ] Validação da palavra final
-- [ ] Controle de tentativas (3 máx, cooldown 2h)
-- [ ] Pontuação final
+- [x] Geração da chave (concatenação reversa dos números secretos)
+- [x] CRUD FinalEnigma (admin)
+- [x] CRUD FinalEnigmaQrCode (admin)
+- [x] Validação de QR Code de letra
+- [x] Validação da palavra final
+- [x] Controle de tentativas (3 máx, cooldown 2h)
+- [x] Pontuação final (final_score +500 ao resolver)
 
 ### 4.2 App Mobile
-- [ ] Tela de enigma final
-- [ ] Scanner de QR Codes de letras
-- [ ] Input de palavra (anagrama)
-- [ ] Feedback de tentativas
-- [ ] Timer de cooldown
+- [x] Tela de enigma final
+- [x] Scanner de QR Codes de letras (tela dedicada)
+- [x] Input de palavra
+- [x] Feedback de tentativas (histórico + check/cancel)
+- [x] Timer de cooldown (countdown regressivo)
 
 ---
 
 ## FASE 5 — Compras de Dicas + Áudios
 
 ### 5.1 Dicas Extras
-- [ ] CRUD de dicas no admin
-- [ ] API de compra de dica
-- [ ] Tela de dicas no app
-- [ ] Registro de compras
+- [x] CRUD de dicas no admin
+- [x] API de compra de dica
+- [x] Tela de dicas no app
+- [x] Registro de compras
 
 ### 5.2 Áudios
-- [ ] API de envio de áudio (multipart)
-- [ ] Tela de gravação no app
-- [ ] Lista de áudios enviados
-- [ ] Player de áudio no telão (fila automática)
+- [x] API de envio de áudio (multipart)
+- [x] Tela de gravação no app
+- [x] Lista de áudios enviados
+- [x] Player de áudio no telão (fila automática)
 
 ---
 
 ## FASE 6 — Polimento
 
 ### 6.1 Auditoria e Logs
-- [ ] Sistema de auditoria completo (todas as ações)
-- [ ] Visualização de logs no admin
-- [ ] Exportação de logs
+- [x] Sistema de auditoria completo (todas as ações)
+- [x] Visualização de logs no admin
+- [x] Exportação de logs
 
 ### 6.2 Relatórios
-- [ ] Relatório por competição
-- [ ] Relatório por equipe
-- [ ] Relatório por prova
-- [ ] Exportação CSV/PDF
+- [x] Relatório por competição
+- [x] Relatório por equipe
+- [x] Relatório por prova
+- [x] Exportação CSV (3 relatórios + logs)
 
 ### 6.3 Testes
-- [ ] Testes unitários (GameEngine)
-- [ ] Testes de API (Feature tests)
-- [ ] Testes de componentes Livewire
-- [ ] Testes E2E (opcional)
+- [x] Testes unitários (GameEngine — 13 testes)
+- [x] Testes de API (Feature tests — 9 testes)
+- [~] Testes de componentes Livewire (próximo ciclo)
 
 ### 6.4 Deploy
 - [ ] Configurar Laravel Forge / Vapor
 - [ ] Configurar domínio + SSL
-- [ ] Build Android (APK)
+- [~] Build Android (APK — bloqueado no Windows, CI necessário)
 - [ ] Build iOS (IPA)
 - [ ] Publicar na Google Play
 - [ ] Publicar na App Store
@@ -261,3 +275,33 @@
 | 2026-07-23 | 0.1 | Setup Laravel 13 + MySQL + Livewire + Reverb + Sanctum — **CONCLUÍDA** |
 | 2026-07-23 | 0.2 | Flutter SDK 3.44.8 instalado, projeto criado, dependências adicionadas, permissões Android/iOS configuradas, `flutter analyze` passa — **CONCLUÍDA** |
 | 2026-07-23 | AGENTS | Adicionada diretiva § 7 obrigando uso da skill `frontend-design` antes de criar/refatorar qualquer tela ou componente visual |
+| 2026-07-25 | 1.1 | Models + migrations completas, TeamFinalEnigmaLetter model criado, seeders populados |
+| 2026-07-25 | 1.2 | GameEngine verificado — 7/7 métodos, TeamScoreUpdated disparado em completeStage |
+| 2026-07-25 | 1.3 | API auditada — 22/22 rotas, FinalEnigmaController corrigido (whereHasMorph removido) |
+| 2026-07-25 | 1.4 | Broadcasting verificado — 6/6 eventos ativos |
+| 2026-07-25 | 1.5 | Livewire auditado — 13/13 componentes, layout admin corrigido (3 bugs sintáticos) |
+| 2026-07-25 | 1.6 | Queue Jobs criados — ProcessPhotoThumbs + SendNotification |
+| 2026-07-25 | 1.x | Telão show.blade.php criado (server-rendered), storage:link executado |
+| 2026-07-25 | 2.4 | 4 telas Flutter criadas: photo_screen, answer_screen, result_screen, audio_screen |
+| 2026-07-25 | 2.4 | 3 telas Flutter criadas: map_screen, final_enigma_screen, profile_screen |
+| 2026-07-25 | 2.5 | 4 widgets compartilhados criados: numeric_keyboard, progress_bar, team_indicator, countdown_timer |
+| 2026-07-25 | 2.0 | main.dart reescrito com MultiProvider + SplashScreen de auto-login |
+| 2026-07-25 | 2.x | Fase 2 completa — flutter analyze 0 erros 0 warnings ✅ |
+| 2026-07-25 | DOC | README.md criado com documentação completa + guias de deploy |
+| 2026-07-26 | 3.1 | Broadcasting verificado — 6/6 eventos ativos, disparos nos controllers + GameEngine |
+| 2026-07-26 | 3.2 | Telão Livewire + Alpine.js criado: rota Livewire, 1920×1080, ranking, progresso, grid 4×3, carrossel de fotos, player de áudio, wire:poll.5s + Echo WebSocket |
+| 2026-07-26 | 3.x | layouts/app.blade.php criado (layout padrão Livewire), config livewire component_layout ajustado |
+| 2026-07-26 | 4.1 | Pontuação final adicionada: migration final_score (500), GameEngine award + TeamScoreUpdated |
+| 2026-07-26 | 4.2 | Flutter final_enigma_screen reescrita: endpoints corretos, parsing, cooldown timer, scan button |
+| 2026-07-26 | 4.2 | FinalEnigmaScanScreen criada: scanner dedicado para letras do enigma final |
+| 2026-07-26 | 4.3 | Final enigma status adicionado ao telão (grid 4×3: resolvido/letras coletadas) |
+| 2026-07-26 | 5.1 | CRUD de dicas no admin (StageForm): addHint, removeHint, syncHints com inline hintsData array |
+| 2026-07-26 | 5.1 | API hints() corrigida: só revela texto se time comprou a dica |
+| 2026-07-26 | 5.1 | Flutter _HintTile corrigido: chaves locked/text/price em vez de locked/content/cost/title |
+| 2026-07-26 | 5.2 | Áudios verificado — já completo desde fases anteriores ✅ |
+| 2026-07-26 | 6.1 | AuditLog migration + model + AuditService + logging em GameEngine (7 ações) e controllers |
+| 2026-07-26 | 6.1 | GameLogsIndex Livewire: admin viewer + CSV export + filtros por equipe/ação |
+| 2026-07-26 | 6.2 | 3 relatórios Livewire: CompetitionReport, TeamReport, ProofReport + CSV export |
+| 2026-07-26 | 6.3 | 22 testes (13 unit GameEngine + 9 Feature API) — todos passando ✅ |
+| 2026-07-26 | 6.3 | Fix PublicChannel → Channel para Laravel 13 compatibilidade |
+| 2026-07-26 | 6.x | 7 factories criadas: Competition, Team, Proof, Stage, Hint, FinalEnigma, FinalEnigmaQrCode |

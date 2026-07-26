@@ -64,11 +64,13 @@ Antes de marcar uma etapa como concluída, executar:
 - Flutter: `flutter analyze` / `flutter test` (quando o SDK estiver disponível)
 - Servidor: testar endpoints com `curl` ou similar
 
-### 5. Git e Commits
+### 5. Git e Commits — OBRIGATÓRIO
 
-- **Não** fazer `git commit` / `git push` sem autorização explícita do usuário
+- **Sempre** fazer `git add` + `git commit` + `git push` automaticamente ao final de cada alteração, SEM perguntar/autorização
 - Mensagens de commit em português, formato: `fase-X.Y: descrição curta`
-- **Sempre** atualizar CHECKLIST + log ANTES de sugerir commit
+- **Sempre** atualizar CHECKLIST + log ANTES do commit
+- Commitar em blocos lógicos (uma fase ou feature por commit)
+- `git push` imediatamente após cada commit
 
 ### 6. Não Fazer Sem Pedir
 
