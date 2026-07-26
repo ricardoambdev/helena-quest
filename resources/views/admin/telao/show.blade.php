@@ -124,25 +124,15 @@
 
     <script>
         function initMap() {
-            const center = { lat: -21.996, lng: -47.426 };
-            const map = new google.maps.Map(document.getElementById('map'), {
+            var center = { lat: -21.996, lng: -47.426 };
+            var map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 15,
                 center: center,
-                mapId: 'helena_quest_map',
-                disableDefaultUI: true,
-                zoomControl: true,
-                styles: [
-                    { elementType: 'geometry', stylers: [{ color: '#1a1d23' }] },
-                    { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1d23' }] },
-                    { elementType: 'labels.text.fill', stylers: [{ color: '#7A7468' }] },
-                    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2a2d35' }] },
-                    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
-                    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#242830' }] },
-                    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f1115' }] },
-                ]
+                disableDefaultUI: false,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
             });
-
-            const schoolPos = { lat: {{ $colegioLat }}, lng: {{ $colegioLng }} };
 
             @if (count($teamPositions) > 0)
                 @foreach ($teamPositions as $pos)
@@ -150,19 +140,15 @@
                         position: { lat: {{ $pos['lat'] }}, lng: {{ $pos['lng'] }} },
                         map: map,
                         title: '{{ $pos['name'] }}',
-                        @if ($pos['crest'])
-                            icon: { url: '{{ $pos['crest'] }}', scaledSize: new google.maps.Size(40, 40) },
-                        @else
-                            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 12, fillColor: '{{ $pos['color'] }}', fillOpacity: 1, strokeWeight: 2, strokeColor: '#fff' },
-                        @endif
+                        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14, fillColor: '{{ $pos['color'] }}', fillOpacity: 1, strokeWeight: 2, strokeColor: '#fff' },
                     });
                 @endforeach
             @else
                 new google.maps.Marker({
-                    position: schoolPos,
+                    position: { lat: {{ $colegioLat }}, lng: {{ $colegioLng }} },
                     map: map,
                     title: 'Colégio Helena',
-                    icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#FF6600" stroke="#fff" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'), scaledSize: new google.maps.Size(40, 40) },
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14, fillColor: '#FF6600', fillOpacity: 1, strokeWeight: 2, strokeColor: '#fff' },
                 });
             @endif
         }

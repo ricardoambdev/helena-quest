@@ -24,7 +24,17 @@
             </div>
         </header>
 
-        {{-- ======== MAIN GRID (3 columns) — Livewire updates these via wire:poll ======== --}}
+        {{-- ======== MAPA — largura total abaixo do header ======== --}}
+        <section class="shrink-0 w-full" wire:key="map-section" style="height:38%; min-height:260px;">
+            <div class="relative w-full h-full bg-white/[0.03] rounded-card overflow-hidden" wire:ignore>
+                <div id="telao-map" class="absolute inset-0"></div>
+                <div id="map-fallback" class="absolute inset-0 flex items-center justify-center text-chalk text-sm">
+                    Carregando mapa...
+                </div>
+            </div>
+        </section>
+
+        {{-- ======== MAIN GRID (2 columns) — Livewire updates these via wire:poll ======== --}}
         <div class="flex-1 grid grid-cols-12 gap-4 min-h-0">
 
             {{-- COL 1: RANKING (3/12) --}}
@@ -49,92 +59,25 @@
                 </ol>
             </section>
 
-            {{-- COL 2: PROGRESSO (5/12) --}}
-            <section class="col-span-5 flex flex-col min-h-0">
+            {{-- COL 2: PROGRESSO (9/12) — sem nomes, só barras --}}
+            <section class="col-span-9 flex flex-col min-h-0">
                 <h2 class="font-display font-bold text-xl text-ignite mb-3 uppercase tracking-wider text-sm">Progresso</h2>
-                <div class="flex-1 space-y-4 overflow-y-auto scrollbar-thin pr-1">
+                <div class="flex-1 grid grid-cols-3 gap-3 content-start overflow-y-auto scrollbar-thin pr-1">
                     @forelse ($this->progress as $proof)
-                        <div>
-                            <h3 class="font-display font-semibold text-base text-paper mb-2 flex items-center gap-2">
-                                @if ($proof['color_hex'])
-                                    <span class="w-2 h-2 rounded-full inline-block" style="background:{{ $proof['color_hex'] }}"></span>
-                                @endif
-                                {{ $proof['name'] }}
-                            </h3>
-                            <div class="grid grid-cols-4 gap-2">
-                                @foreach ($proof['stages'] as $st)
-                                    @php
-                                        $pct = $st['total'] > 0 ? round(($st['completed_count'] / $st['total']) * 100) : 0;
-                                        $isAnyActive = $st['active_count'] > 0;
-                                    @endphp
-                                    <div class="bg-white/[0.03] rounded-card px-2 py-2 text-center {{ $isAnyActive ? 'ring-1 ring-ignite/40 pulse-glow' : '' }}">
-                                        <p class="text-[10px] text-chalk font-mono truncate leading-tight">{{ $st['name'] }}</p>
-                                        <p class="font-display font-bold text-xl text-ignite tabular-nums">{{ $st['completed_count'] }}/{{ $st['total'] }}</p>
-                                        <div class="w-full h-1.5 bg-white/10 rounded-full mt-1 overflow-hidden">
-                                            <div class="bar-fill h-full bg-ignite rounded-full" style="width:{{ $pct }}%"></div>
-                                        </div>
-                                    </div>
-                                @endforeach
+                        @foreach ($proof['stages'] as $st)
+                            @php
+                                $pct = $st['total'] > 0 ? round(($st['completed_count'] / $st['total']) * 100) : 0;
+                                $isAnyActive = $st['active_count'] > 0;
+                            @endphp
+                            <div class="bg-white/[0.03] rounded-card px-3 py-3 {{ $isAnyActive ? 'ring-1 ring-ignite/40 pulse-glow' : '' }}">
+                                <span class="font-display font-bold text-2xl text-ignite tabular-nums">{{ $st['completed_count'] }}/{{ $st['total'] }}</span>
+                                <div class="w-full h-2 bg-white/10 rounded-full mt-2 overflow-hidden">
+                                    <div class="bar-fill h-full bg-ignite rounded-full" style="width:{{ $pct }}%"></div>
+                                </div>
                             </div>
-                        </div>
+                        @endforeach
                     @empty
                         <p class="text-chalk">Nenhuma prova cadastrada</p>
-                    @endforelse
-                </div>
-            </section>
-
-            {{-- COL 3: GRID 4×3 DAS EQUIPES (4/12) --}}
-            <section class="col-span-4 flex flex-col min-h-0">
-                <h2 class="font-display font-bold text-xl text-ignite mb-3 uppercase tracking-wider text-sm">Equipes ao Vivo</h2>
-                <div class="flex-1 grid-4x3">
-                    @php
-                        $activeTeams = $this->competition->teams->where('status', 'active')->values();
-                        $locations = collect($this->teamLocations)->keyBy('team_id');
-                        $rankingLookup = collect($this->ranking)->keyBy('id');
-                        $finalStatus = $this->finalEnigmaStatus;
-                        $finalTeams = collect($finalStatus['teams'] ?? [])->keyBy('team_id');
-                    @endphp
-                    @forelse ($activeTeams as $cellIdx => $team)
-                        @php
-                            $loc = $locations->get($team->id);
-                            $rank = $rankingLookup->get($team->id);
-                            $hasGps = $loc && $loc['lat'] !== null;
-                            $fs = $finalTeams->get($team->id);
-                        @endphp
-                        <div class="zone-cell {{ $hasGps ? 'active' : '' }}" style="border-left-color: {{ $team->color_hex }}; border-left-width: 3px;">
-                            <div class="flex items-center gap-2 mb-1">
-                                @if ($rank)
-                                    <span class="font-display font-extrabold text-lg text-chalk">#{{ $activeTeams->search(fn($t) => $t->id === $team->id) + 1 }}</span>
-                                @endif
-                                <p class="font-display font-bold text-sm truncate" style="color:{{ $team->color_hex }}">{{ $team->name }}</p>
-                            </div>
-                            @if ($rank)
-                                <div class="flex items-baseline gap-2">
-                                    <span class="font-display font-extrabold text-3xl tabular-nums text-ignite">{{ $rank['total_score'] }}</span>
-                                    <span class="text-chalk text-[10px] font-mono">pts</span>
-                                </div>
-                                <div class="flex gap-2 text-[10px] font-mono text-chalk mt-1">
-                                    <span>{{ $rank['total_stages'] }} etapas</span>
-                                    <span>{{ $rank['photos_count'] }} fotos</span>
-                                    <span>{{ $rank['audios_count'] }} audios</span>
-                                </div>
-                            @else
-                                <div class="text-chalk text-xs mt-2">—</div>
-                            @endif
-                            @if ($fs)
-                                @if ($fs['solved'])
-                                    <span class="text-[9px] text-green-400 font-mono mt-1">★ Enigma resolvido!</span>
-                                @elseif ($fs['letters_collected'] >= $fs['required_letters'])
-                                    <span class="text-[9px] text-flame font-mono mt-1">★ Todas as letras coletadas</span>
-                                @elseif ($fs['letters_collected'] > 0)
-                                    <span class="text-[9px] text-chalk font-mono mt-1">{{ $fs['letters_collected'] }}/{{ $fs['required_letters'] }} letras</span>
-                                @endif
-                            @elseif ($hasGps)
-                                <span class="text-[9px] text-green-400 font-mono mt-1">● online</span>
-                            @endif
-                        </div>
-                    @empty
-                        <div class="zone-cell col-span-4 row-span-3 text-chalk text-lg">Nenhuma equipe ativa</div>
                     @endforelse
                 </div>
             </section>
@@ -220,7 +163,7 @@
 </div>
 
 <script>
-    function telaoData() {
+    function     telaoData() {
         return {
             photos: [],
             photoIndex: 0,
@@ -234,11 +177,24 @@
             clock: '',
             echo: null,
 
+            map: null,
+            mapMarkers: [],
+            mapInitialized: false,
+
             initTelao() {
                 this.startClock();
                 this.loadFromServer();
                 this.startCarousel();
                 this.initEcho();
+                this.waitForMap();
+            },
+
+            waitForMap() {
+                if (typeof google !== 'undefined' && google.maps) {
+                    this.initMap();
+                } else {
+                    setTimeout(this.waitForMap.bind(this), 400);
+                }
             },
 
             loadFromServer() {
@@ -246,6 +202,55 @@
                     this.$wire.get('recentPhotos').then(data => { this.photos = data; });
                     this.$wire.get('recentAudios').then(data => { this.audios = data; });
                 }
+            },
+
+            initMap() {
+                if (typeof google === 'undefined') return;
+                var el = document.getElementById('telao-map');
+                if (!el) return;
+                var fallback = document.getElementById('map-fallback');
+                this.map = new google.maps.Map(el, {
+                    zoom: 15,
+                    center: { lat: -21.996, lng: -47.426 },
+                    disableDefaultUI: false,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                });
+                if (fallback) fallback.style.display = 'none';
+                this.mapInitialized = true;
+                this.loadMapLocations();
+            },
+
+            loadMapLocations() {
+                if (!this.mapInitialized || !this.$wire) return;
+                this.$wire.get('teamLocations').then(function(locs) {
+                    this.updateMapMarkers(locs);
+                }.bind(this));
+            },
+
+            updateMapMarkers(locations) {
+                this.mapMarkers.forEach(function(m) { m.setMap(null); });
+                this.mapMarkers = [];
+                if (!locations || !locations.length) {
+                    new google.maps.Marker({
+                        position: { lat: -21.996, lng: -47.426 },
+                        map: this.map,
+                        title: 'Colegio Helena',
+                        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14, fillColor: '#FF6600', fillOpacity: 1, strokeWeight: 2, strokeColor: '#fff' },
+                    });
+                    return;
+                }
+                locations.forEach(function(loc) {
+                    if (loc.lat == null || loc.lng == null) return;
+                    var m = new google.maps.Marker({
+                        position: { lat: loc.lat, lng: loc.lng },
+                        map: this.map,
+                        title: loc.team_name,
+                        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14, fillColor: loc.team_color, fillOpacity: 1, strokeWeight: 2, strokeColor: '#fff' },
+                    });
+                    this.mapMarkers.push(m);
+                }.bind(this));
             },
 
             startClock() {
@@ -317,6 +322,7 @@
 
             refreshFromServer() {
                 this.loadFromServer();
+                this.loadMapLocations();
                 if (window.Livewire && this.$wire) {
                     this.$wire.$refresh();
                 }
@@ -328,6 +334,8 @@
         const el = document.querySelector('[x-data]');
         if (el && el.__x) {
             el.__x.loadFromServer();
+            el.__x.loadMapLocations();
         }
     });
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&loading=async" async defer></script>

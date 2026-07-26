@@ -183,7 +183,8 @@
 
 ### 3.2 Página Pública do Telão
 - [x] Rota `/telao/{competition}` (Livewire + Alpine.js)
-- [x] Mapa 4×3 com posições em tempo real
+- [x] Mapa Google Maps com pins das equipes
+- [x] Progresso sem nomes (só barras + contagem)
 - [x] Barra de progresso por equipe
 - [x] Pontuação + ranking
 - [x] Carrossel de fotos
@@ -320,3 +321,4 @@
 | 2026-07-26 | 6.x | 7 factories criadas: Competition, Team, Proof, Stage, Hint, FinalEnigma, FinalEnigmaQrCode |
 | 2026-07-26 | 6.5 | Limite de equipes configurável: max_teams na competição (default 2), validação no TeamForm, campo na tela de configuração |
 | 2026-07-26 | 6.6 | Usuário root, migration role root, Settings page, sidebar redesenhada (cor #171A21, menu minimalista, link config, logout harmonioso) |
+| 2026-07-26 | 3.2 | Telão reformulado: mapa Google Maps full-width no topo (38% altura) + grid ranking/progresso; progresso sem nomes em grid 3 colunas |
