@@ -170,7 +170,7 @@ class _FinalEnigmaScreenState extends State<FinalEnigmaScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.error.withOpacity(0.1),
+                  color: AppTheme.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppTheme.error),
                 ),
@@ -183,7 +183,7 @@ class _FinalEnigmaScreenState extends State<FinalEnigmaScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Color(0xFF22C55E).withOpacity(0.1),
+                  color: const Color(0xFF22C55E).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFF22C55E)),
                 ),
@@ -224,7 +224,7 @@ class _FinalEnigmaScreenState extends State<FinalEnigmaScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.error.withOpacity(0.1),
+                    color: AppTheme.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
