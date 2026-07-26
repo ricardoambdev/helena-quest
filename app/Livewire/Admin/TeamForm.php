@@ -7,15 +7,19 @@ namespace App\Livewire\Admin;
 use App\Models\Competition;
 use App\Models\Team;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Layout('layouts.admin')]
 #[Title('Equipe')]
 class TeamForm extends Component
 {
+    use WithFileUploads;
+
     public ?Team $team = null;
     public ?int $competition_id = null;
 
@@ -25,6 +29,7 @@ class TeamForm extends Component
     public string $password = '';
     public string $status = 'active';
     public string $description = '';
+    public $logo = null;
 
     public function mount(?Team $team = null, ?int $competition_id = null): void
     {
@@ -53,6 +58,7 @@ class TeamForm extends Component
             'password' => [$this->team?->exists ? 'nullable' : 'required', 'string', 'min:6'],
             'status' => ['required', 'in:active,blocked,inactive,eliminated'],
             'description' => ['nullable', 'string'],
+            'logo' => ['nullable', 'image', 'mimes:png', 'max:512'],
         ];
     }
 
@@ -84,6 +90,11 @@ class TeamForm extends Component
             $payload['password_changed_by'] = auth()->id();
         }
 
+        if ($this->logo) {
+            $path = $this->logo->store('teams/logos', 'public');
+            $payload['crest_path'] = $path;
+        }
+
         if ($this->team?->exists) {
             $this->team->update($payload);
             session()->flash('success', 'Equipe atualizada.');
@@ -93,6 +104,15 @@ class TeamForm extends Component
         }
 
         $this->redirectRoute('admin.teams.edit', $this->team->id);
+    }
+
+    public function removeLogo(): void
+    {
+        if ($this->team?->crest_path) {
+            Storage::disk('public')->delete($this->team->crest_path);
+            $this->team->update(['crest_path' => null]);
+            session()->flash('success', 'Logo removida.');
+        }
     }
 
     public function block(): void

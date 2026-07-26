@@ -6,6 +6,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Team;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -46,6 +47,16 @@ class TeamIndex extends Component
             ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
             ->orderBy('name')
             ->paginate(20);
+    }
+
+    #[On('deleteTeam')]
+    public function deleteTeam(int $teamId): void
+    {
+        $team = Team::find($teamId);
+        if ($team) {
+            $team->delete();
+            session()->flash('success', 'Equipe excluída.');
+        }
     }
 
     public function render()

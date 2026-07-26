@@ -10,6 +10,22 @@
         ->keyBy('team_id');
 
     $sortedTeams = $teams->sortByDesc(fn ($t) => $ranking->get($t->id)?->total_score ?? 0);
+
+    $colegioLat = -21.9965;
+    $colegioLng = -47.4265;
+
+    $teamPositions = [];
+    foreach ($teams as $t) {
+        $lastProgress = $t->stageProgress()->whereNotNull('gps_lat')->latest()->first();
+        $teamPositions[] = [
+            'id' => $t->id,
+            'name' => $t->name,
+            'color' => $t->color_hex,
+            'lat' => $lastProgress?->gps_lat ?? $colegioLat,
+            'lng' => $lastProgress?->gps_lng ?? $colegioLng,
+            'crest' => $t->crest_path ? asset('storage/' . $t->crest_path) : null,
+        ];
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -22,12 +38,13 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,600,700,800,900|nunito:400,600,700|jetbrains-mono:400,500,700" rel="stylesheet" />
     <style>
-        body { font-family: 'Nunito', system-ui, sans-serif; background: #0D0D0F; color: #FAF8F5; }
+        body { font-family: 'Nunito', system-ui, sans-serif; background: #171A21; color: #FAF8F5; }
+        #map { width: 100%; height: 100%; min-height: 400px; border-radius: 12px; }
         @media (prefers-reduced-motion: reduce) { *,::before,::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-8" style="font-size:18px;">
-    <header class="flex items-baseline justify-between mb-10 border-b border-white/10 pb-4">
+    <header class="flex items-baseline justify-between mb-8 border-b border-white/10 pb-4">
         <div>
             <span class="text-ignite text-xs uppercase tracking-[0.18em] font-display font-semibold">Helena Quest ao Vivo</span>
             <h1 class="font-display font-extrabold text-5xl mt-1">{{ $competition->name }}</h1>
@@ -38,29 +55,34 @@
         </div>
     </header>
 
-    <div class="grid grid-cols-3 gap-8 flex-1">
-        {{-- Ranking --}}
-        <section class="col-span-1">
-            <h2 class="font-display font-bold text-2xl text-ignite mb-4">Classificacao</h2>
-            <ol class="space-y-3">
-                @forelse ($sortedTeams as $i => $team)
-                    @php $r = $ranking->get($team->id); @endphp
-                    <li class="flex items-center gap-4 bg-white/5 rounded-card px-5 py-4 border-l-4" style="border-left-color: {{ $team->color_hex }};">
-                        <span class="font-display font-extrabold text-3xl text-chalk w-10">{{ $i + 1 }}</span>
-                        <div class="flex-1 min-w-0">
-                            <p class="font-display font-bold text-xl truncate">{{ $team->name }}</p>
-                            <p class="text-chalk text-sm">{{ $r?->total_stages ?? 0 }} etapas &middot; {{ $r?->total_time ?? 0 }}s</p>
-                        </div>
-                        <span class="font-display font-extrabold text-3xl text-ignite">{{ $r?->total_score ?? 0 }}</span>
-                    </li>
-                @empty
-                    <li class="text-chalk">Nenhuma equipe ativa</li>
-                @endforelse
-            </ol>
+    <div class="grid grid-cols-5 gap-6 flex-1">
+        <section class="col-span-2 flex flex-col gap-6">
+            <div>
+                <h2 class="font-display font-bold text-2xl text-ignite mb-4">Classificacao</h2>
+                <ol class="space-y-3">
+                    @forelse ($sortedTeams as $i => $team)
+                        @php $r = $ranking->get($team->id); @endphp
+                        <li class="flex items-center gap-4 bg-white/5 rounded-card px-5 py-4 border-l-4" style="border-left-color: {{ $team->color_hex }};">
+                            <span class="font-display font-extrabold text-3xl text-chalk w-10">{{ $i + 1 }}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-display font-bold text-xl truncate">{{ $team->name }}</p>
+                                <p class="text-chalk text-sm">{{ $r?->total_stages ?? 0 }} etapas &middot; {{ $r?->total_time ?? 0 }}s</p>
+                            </div>
+                            <span class="font-display font-extrabold text-3xl text-ignite">{{ $r?->total_score ?? 0 }}</span>
+                        </li>
+                    @empty
+                        <li class="text-chalk">Nenhuma equipe ativa</li>
+                    @endforelse
+                </ol>
+            </div>
+
+            <div class="flex-1">
+                <h2 class="font-display font-bold text-2xl text-ignite mb-4">Mapa</h2>
+                <div id="map"></div>
+            </div>
         </section>
 
-        {{-- Progresso --}}
-        <section class="col-span-2">
+        <section class="col-span-3">
             <h2 class="font-display font-bold text-2xl text-ignite mb-4">Progresso</h2>
             <div class="space-y-6">
                 @forelse ($proofs as $proof)
@@ -99,5 +121,52 @@
     <footer class="mt-auto pt-4 border-t border-white/10 text-center text-chalk text-xs font-mono">
         Helena Quest &middot; atualizado em {{ now()->format('H:i:s') }}
     </footer>
+
+    <script>
+        function initMap() {
+            const center = { lat: -21.996, lng: -47.426 };
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 15,
+                center: center,
+                mapId: 'helena_quest_map',
+                disableDefaultUI: true,
+                zoomControl: true,
+                styles: [
+                    { elementType: 'geometry', stylers: [{ color: '#1a1d23' }] },
+                    { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1d23' }] },
+                    { elementType: 'labels.text.fill', stylers: [{ color: '#7A7468' }] },
+                    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2a2d35' }] },
+                    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
+                    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#242830' }] },
+                    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f1115' }] },
+                ]
+            });
+
+            const schoolPos = { lat: {{ $colegioLat }}, lng: {{ $colegioLng }} };
+
+            @if (count($teamPositions) > 0)
+                @foreach ($teamPositions as $pos)
+                    new google.maps.Marker({
+                        position: { lat: {{ $pos['lat'] }}, lng: {{ $pos['lng'] }} },
+                        map: map,
+                        title: '{{ $pos['name'] }}',
+                        @if ($pos['crest'])
+                            icon: { url: '{{ $pos['crest'] }}', scaledSize: new google.maps.Size(40, 40) },
+                        @else
+                            icon: { path: google.maps.SymbolPath.CIRCLE, scale: 12, fillColor: '{{ $pos['color'] }}', fillOpacity: 1, strokeWeight: 2, strokeColor: '#fff' },
+                        @endif
+                    });
+                @endforeach
+            @else
+                new google.maps.Marker({
+                    position: schoolPos,
+                    map: map,
+                    title: 'Colégio Helena',
+                    icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#FF6600" stroke="#fff" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'), scaledSize: new google.maps.Size(40, 40) },
+                });
+            @endif
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&callback=initMap" async defer></script>
 </body>
 </html>
