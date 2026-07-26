@@ -3,7 +3,7 @@
         x-data="telaoData()"
         x-init="initTelao()"
         wire:ignore.self
-        class="flex flex-col h-full w-full p-6 gap-4"
+        class="flex flex-col h-screen w-full p-6 gap-4"
         style="font-size:18px;"
     >
         {{-- ======== HEADER ======== --}}
@@ -25,8 +25,8 @@
         </header>
 
         {{-- ======== MAPA — largura total abaixo do header ======== --}}
-        <section class="shrink-0 w-full" wire:key="map-section" style="height:400px;">
-            <div class="relative w-full h-full bg-white/[0.03] rounded-card overflow-hidden" wire:ignore>
+        <section class="shrink-0 w-full" wire:key="map-section" style="height:300px;">
+            <div class="relative w-full h-full bg-[#1a1d23] rounded-card overflow-hidden" wire:ignore>
                 <div id="telao-map" class="absolute inset-0 rounded-card"></div>
                 <div id="map-fallback" class="absolute inset-0 flex items-center justify-center text-chalk text-sm">
                     Carregando mapa...
@@ -229,6 +229,15 @@
                         mapTypeControl: false,
                         streetViewControl: false,
                         fullscreenControl: false,
+                        styles: [
+                            { elementType: 'geometry', stylers: [{ color: '#1a1d23' }] },
+                            { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1d23' }] },
+                            { elementType: 'labels.text.fill', stylers: [{ color: '#7A7468' }] },
+                            { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2a2d35' }] },
+                            { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
+                            { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#242830' }] },
+                            { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f1115' }] },
+                        ],
                     });
                     if (fallback) fallback.style.display = 'none';
                     if (this.mapsTimeout) { clearTimeout(this.mapsTimeout); this.mapsTimeout = null; }
