@@ -2,8 +2,8 @@ class AppConstants {
   AppConstants._();
 
   // Mudar para URL de produção quando em deploy
-  static const String baseUrl = 'http://gincana.test/api';
-  static const String wsUrl = 'ws://gincana.test:8080';
+  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String wsUrl = 'ws://127.0.0.1:8080';
 
   static const Duration requestTimeout = Duration(seconds: 30);
   static const Duration uploadTimeout = Duration(seconds: 120);

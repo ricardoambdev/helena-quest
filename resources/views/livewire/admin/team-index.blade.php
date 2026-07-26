@@ -4,7 +4,7 @@
             <p class="text-ignite text-xs font-display font-semibold uppercase tracking-[0.18em] mb-1">Listagem</p>
             <h1 class="font-display font-extrabold text-3xl text-ink">Equipes</h1>
      </div>
-        <a href="@php echo route("teams.create"); @endphp" class="px-5 py-2 rounded-card bg-ignite text-paper font-display font-bold">Nova equipe</a>
+        <a href="@php echo route("admin.teams.create"); @endphp" class="px-5 py-2 rounded-card bg-ignite text-paper font-display font-bold">Nova equipe</a>
  </header>
 
     <div class="bg-white rounded-card border border-rule p-4 mb-4 grid grid-cols-1 md:grid-cols-4 gap-3 shadow-card">
@@ -38,7 +38,7 @@
                 @forelse ($this->teams as $t)
                     <tr class="border-t border-rule hover:bg-paper/40">
                         <td class="p-3 flex items-center gap-2">
-                            <span class="w-3 h-3 rounded-full" style="background:@php echo $t->color_hex; @endphp</span>
+                            <span class="w-3 h-3 rounded-full" style="background:@php echo $t->color_hex; @endphp"></span>
                             <span class="font-display font-semibold">@php echo $t->name; @endphp</span>
                  </td>
                         <td class="p-3 font-mono text-sm text-chalk">@php echo $t->username; @endphp</td>
@@ -53,7 +53,7 @@
                  </td>
                         <td class="p-3 text-chalk text-sm">@php echo $t->competition?->name ?? "—"; @endphp</td>
                         <td class="p-3 text-right">
-                            <a href="@php echo route("teams.edit", $t->id); @endphp" class="text-ignite font-display font-semibold hover:underline">Editar</a>
+                            <a href="@php echo route("admin.teams.edit", $t->id); @endphp" class="text-ignite font-display font-semibold hover:underline">Editar</a>
                  </td>
                   </tr>
                 @empty

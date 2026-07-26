@@ -25,7 +25,7 @@
        </label>
 
             <label class="flex flex-col gap-1">
-                <span class="font-display text-xs uppercase tracking-wider text-chalk">Raio GPS (m</span>
+                <span class="font-display text-xs uppercase tracking-wider text-chalk">Raio GPS (m)</span>
                 <input type="number" min="5" max="200" wire:model="radius" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none font-mono">
        </label>
 
@@ -40,7 +40,7 @@
            </label>
 
             <label class="md:col-span-2 flex flex-col gap-1">
-                <span class="font-display text-xs uppercase tracking-wider text-chalk">Narrativa (TTS automático no app</span>
+                <span class="font-display text-xs uppercase tracking-wider text-chalk">Narrativa (TTS automático no app)</span>
                 <textarea wire:model="narrative_text" rows="5" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none</textarea>
                 @error('narrative_text') <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
        </label>
@@ -51,13 +51,13 @@
        </label>
 
             <label class="flex flex-col gap-1">
-                <span class="font-display text-xs uppercase tracking-wider text-chalk">Resposta correta (4–8 dígitos</span>
+                <span class="font-display text-xs uppercase tracking-wider text-chalk">Resposta correta (4–8 dígitos)</span>
                 <input type="text" maxlength="8" pattern="\d{4,8}" wire:model="correct_answer" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none font-mono tracking-wider">
                 @error('correct_answer') <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
            </label>
 
             <label class="flex flex-col gap-1">
-                <span class="font-display text-xs uppercase tracking-wider text-chalk">Número secreto (4–8 dígitos</span>
+                <span class="font-display text-xs uppercase tracking-wider text-chalk">Número secreto (4–8 dígitos)</span>
                 <input type="text" maxlength="8" pattern="\d{4,8}" wire:model="secret_number" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none font-mono tracking-wider">
                 @error('secret_number') <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
            </label>
@@ -103,7 +103,7 @@
                             @foreach ($stageCollection as $s)
                                 <li class="flex items-baseline gap-2 {{ $s->id === $this->stage?->id ? 'text-ember font-display font-semibold' : 'text-ink' }}">
                                     <span class="font-mono text-xs text-chalk w-8">@php echo str_pad((string) $s->order, 2, '0', STR_PAD_LEFT); @endphp</span>
-                                    <a href="{{ route('stages.edit', $s->id) }}" class="hover:text-ignite">@php echo $s->name; @endphp</a>
+                                    <a href="{{ route('admin.stages.edit', $s->id) }}" class="hover:text-ignite">@php echo $s->name; @endphp</a>
                                </li>
                             @endforeach
                        </ol>

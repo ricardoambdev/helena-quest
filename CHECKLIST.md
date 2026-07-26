@@ -247,7 +247,13 @@
 - [x] Testes de API (Feature tests — 9 testes)
 - [~] Testes de componentes Livewire (próximo ciclo)
 
-### 6.4 Deploy
+### 6.4 Limite de Equipes
+- [x] Migration add max_teams (default 2) na tabela competitions
+- [x] Campo ajustável na página de configuração da competição
+- [x] Validação no cadastro de equipes: bloqueia se atingiu o limite
+- [x] Correção geral de rotas admin em Livewire + views (redirectRoute e route())
+
+### 6.5 Deploy
 - [ ] Configurar Laravel Forge / Vapor
 - [ ] Configurar domínio + SSL
 - [~] Build Android (APK — bloqueado no Windows, CI necessário)
@@ -305,3 +311,4 @@
 | 2026-07-26 | 6.3 | 22 testes (13 unit GameEngine + 9 Feature API) — todos passando ✅ |
 | 2026-07-26 | 6.3 | Fix PublicChannel → Channel para Laravel 13 compatibilidade |
 | 2026-07-26 | 6.x | 7 factories criadas: Competition, Team, Proof, Stage, Hint, FinalEnigma, FinalEnigmaQrCode |
+| 2026-07-26 | 6.5 | Limite de equipes configurável: max_teams na competição (default 2), validação no TeamForm, campo na tela de configuração |

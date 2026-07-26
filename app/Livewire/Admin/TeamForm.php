@@ -60,6 +60,15 @@ class TeamForm extends Component
     {
         $data = $this->validate();
 
+        if (!$this->team?->exists) {
+            $competition = Competition::findOrFail($data['competition_id']);
+            $currentCount = $competition->teams()->count();
+            if ($currentCount >= $competition->max_teams) {
+                session()->flash('error', "Limite de {$competition->max_teams} equipes atingido. Aumente o limite na página de configuração da competição.");
+                return;
+            }
+        }
+
         $payload = [
             'competition_id' => $data['competition_id'],
             'name' => $data['name'],
@@ -83,7 +92,7 @@ class TeamForm extends Component
             session()->flash('success', 'Equipe criada. Usuário: ' . $this->team->username);
         }
 
-        $this->redirectRoute('teams.edit', $this->team->id);
+        $this->redirectRoute('admin.teams.edit', $this->team->id);
     }
 
     public function block(): void
@@ -108,7 +117,7 @@ class TeamForm extends Component
         }
         $this->team->delete();
         session()->flash('success', 'Equipe excluída (soft delete).');
-        $this->redirectRoute('teams.index');
+        $this->redirectRoute('admin.teams.index');
     }
 
     #[Computed]

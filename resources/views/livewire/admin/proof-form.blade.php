@@ -11,7 +11,7 @@
             <select wire:model="competition_id" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none">
                 <option value="">Selecione</option>
                 @foreach ($this->competitionsList as $c)
-                    <option value="@php echo $c->id; @endphp">@php echo $c->name; @endphp (@php echo $c->year; @endphp</option>
+                    <option value="@php echo $c->id; @endphp">@php echo $c->name; @endphp (@php echo $c->year; @endphp)</option>
                 @endforeach
           </select>
             @error("competition_id") <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
@@ -45,13 +45,13 @@
 
         <label class="md:col-span-2 flex flex-col gap-1">
             <span class="font-display text-xs uppercase tracking-wider text-chalk">Descrição</span>
-            <textarea wire:model="description" rows="3" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none</textarea>
+            <textarea wire:model="description" rows="3" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none"></textarea>
       </label>
 
         <div class="md:col-span-2 flex items-end justify-end gap-3 pt-2">
             @if ($this->proof?->exists)
                 <button type="button" wire:click="delete" wire:confirm="Excluir esta prova?" class="px-4 py-2 rounded-card border border-ember text-ember font-display font-semibold">Excluir</button>
-                <a href="@php echo route("stages.create", ["proof_id" => $this->proof->id]); @endphp" class="px-4 py-2 rounded-card border border-flame text-ember font-display font-semibold">Adicionar etapa</a>
+                <a href="@php echo route("admin.stages.create", ["proof_id" => $this->proof->id]); @endphp" class="px-4 py-2 rounded-card border border-flame text-ember font-display font-semibold">Adicionar etapa</a>
                 <button type="submit" class="px-5 py-2 rounded-card bg-ignite text-paper font-display font-bold">Salvar</button>
             @else
                 <button type="submit" class="px-5 py-2 rounded-card bg-ignite text-paper font-display font-bold">Criar prova</button>
@@ -70,7 +70,7 @@
                         <li class="step">
                             <div class="bg-white rounded-card border border-rule px-5 py-3 shadow-card flex items-center justify-between">
                                 <span class="font-display font-semibold">@php echo $s->name; @endphp</span>
-                                <a href="@php echo route("stages.edit", $s->id); @endphp" class="text-ignite font-display font-semibold">Editar</a>
+                                <a href="@php echo route("admin.stages.edit", $s->id); @endphp" class="text-ignite font-display font-semibold">Editar</a>
                          </div>
                      </li>
                     @endforeach

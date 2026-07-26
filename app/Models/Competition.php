@@ -21,6 +21,7 @@ class Competition extends Model
         'start_time',
         'end_time',
         'status',
+        'max_teams',
         'logo_path',
         'banner_path',
         'rules_markdown',

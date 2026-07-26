@@ -97,7 +97,7 @@ class FinalEnigmaForm extends Component
         }
 
         session()->flash('success', 'Enigma final salvo.');
-        $this->redirectRoute('final-enigma.edit', $this->enigma->id);
+        $this->redirectRoute('admin.final-enigma.edit', $this->enigma->id);
     }
 
     public function addLetter(): void

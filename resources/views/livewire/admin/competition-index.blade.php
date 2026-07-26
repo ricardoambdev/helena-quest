@@ -4,7 +4,7 @@
             <p class="text-ignite text-xs font-display font-semibold uppercase tracking-[0.18em] mb-1">Listagem</p>
             <h1 class="font-display font-extrabold text-3xl text-ink">Competições</h1>
     </div>
-        <a href="{{ route('competitions.create') }}" class="px-5 py-2 rounded-card bg-ignite text-paper font-display font-bold hover:bg-ember transition-colors duration-200">
+        <a href="{{ route('admin.competitions.create') }}" class="px-5 py-2 rounded-card bg-ignite text-paper font-display font-bold hover:bg-ember transition-colors duration-200">
             Nova competição
     </a>
 </header>
@@ -56,7 +56,7 @@
                  </td>
                         <td class="p-3 text-ink">@php echo $c->proofs_count; @endphp</td>
                         <td class="p-3 text-right">
-                            <a href="{{ route('competitions.edit', $c->id) }}" class="text-ignite font-display font-semibold hover:underline">Editar</a>
+                            <a href="{{ route('admin.competitions.edit', $c->id) }}" class="text-ignite font-display font-semibold hover:underline">Editar</a>
                             @if ($c->status === 'planning' || $c->status === 'archived')
                                 <button type="button" wire:click="delete({{ $c->id }})" wire:confirm="Excluir esta competição?" class="ml-3 text-ember font-display font-semibold hover:underline">Excluir</button>
                             @endif
@@ -70,6 +70,6 @@
         </tbody>
   </table>
 
-        <div class="p-4">{{ $competitions->links()</div>
+        <div class="p-4">{{ $competitions->links() }}</div>
  </div>
 </div>

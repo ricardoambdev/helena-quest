@@ -25,6 +25,7 @@ class CompetitionForm extends Component
     public string $start_time = '';
     public string $end_time = '';
     public string $status = 'planning';
+    public int $max_teams = 2;
     public string $rules_markdown = '';
 
     public function mount(?Competition $competition = null): void
@@ -39,6 +40,7 @@ class CompetitionForm extends Component
                 'start_time' => $competition->start_time?->format('Y-m-d H:i') ?? '',
                 'end_time' => $competition->end_time?->format('Y-m-d H:i') ?? '',
                 'status' => $competition->status,
+                'max_teams' => $competition->max_teams ?? 2,
                 'rules_markdown' => $competition->rules_markdown ?? '',
             ]);
         }
@@ -56,6 +58,7 @@ class CompetitionForm extends Component
             'start_time' => ['required', 'date'],
             'end_time' => ['required', 'date', 'after:start_time'],
             'status' => ['required', 'in:planning,published,ongoing,paused,finished,archived'],
+            'max_teams' => ['required', 'integer', 'min:1', 'max:999'],
             'rules_markdown' => ['nullable', 'string'],
         ];
     }
@@ -84,7 +87,7 @@ class CompetitionForm extends Component
 
         session()->flash('success', $this->competition->wasRecentlyCreated ? 'Competição criada.' : 'Competição atualizada.');
 
-        $this->redirectRoute('competitions.edit', $this->competition->id);
+        $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     public function publish(): void
@@ -104,7 +107,7 @@ class CompetitionForm extends Component
         event(new \App\Events\CompetitionStatusChanged($this->competition->fresh(), $previous));
 
         session()->flash('success', 'Competição publicada.');
-        $this->redirectRoute('competitions.edit', $this->competition->id);
+        $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     public function startCompetition(): void
@@ -123,7 +126,7 @@ class CompetitionForm extends Component
         event(new \App\Events\CompetitionStatusChanged($this->competition->fresh(), $previous));
 
         session()->flash('success', 'Competição iniciada. Boas gincanas!');
-        $this->redirectRoute('competitions.edit', $this->competition->id);
+        $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     public function pause(): void
@@ -135,7 +138,7 @@ class CompetitionForm extends Component
         $this->competition->update(['status' => 'paused', 'updated_by' => auth()->id()]);
         event(new \App\Events\CompetitionStatusChanged($this->competition->fresh(), $previous));
         session()->flash('success', 'Competição pausada.');
-        $this->redirectRoute('competitions.edit', $this->competition->id);
+        $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     public function finish(): void
@@ -151,7 +154,7 @@ class CompetitionForm extends Component
         ]);
         event(new \App\Events\CompetitionStatusChanged($this->competition->fresh(), $previous));
         session()->flash('success', 'Competição encerrada.');
-        $this->redirectRoute('competitions.edit', $this->competition->id);
+        $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     #[Computed]

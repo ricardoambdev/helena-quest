@@ -72,7 +72,7 @@ class ProofForm extends Component
 
         $this->competition_id = $this->proof->competition_id;
         session()->flash('success', 'Prova salva. Agora adicione as etapas.');
-        $this->redirectRoute('proofs.edit', $this->proof->id);
+        $this->redirectRoute('admin.proofs.edit', $this->proof->id);
     }
 
     public function delete(): void
@@ -86,7 +86,7 @@ class ProofForm extends Component
         }
         $this->proof->delete();
         session()->flash('success', 'Prova excluída.');
-        $this->redirectRoute('competitions.edit', $this->competition_id);
+        $this->redirectRoute('admin.competitions.edit', $this->competition_id);
     }
 
     #[Computed]

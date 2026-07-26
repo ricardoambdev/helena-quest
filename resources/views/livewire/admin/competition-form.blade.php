@@ -49,13 +49,13 @@
 
         <label class="md:col-span-2 flex flex-col gap-1">
             <span class="font-display text-xs uppercase tracking-wider text-chalk">Descrição</span>
-            <textarea wire:model="description" rows="3" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none</textarea>
+            <textarea wire:model="description" rows="3" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none"></textarea>
             @error('description') <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
      </label>
 
         <label class="md:col-span-2 flex flex-col gap-1">
-            <span class="font-display text-xs uppercase tracking-wider text-chalk">Regulamento (Markdown</span>
-            <textarea wire:model="rules_markdown" rows="6" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none font-mono text-xs</textarea>
+            <span class="font-display text-xs uppercase tracking-wider text-chalk">Regulamento (Markdown)</span>
+            <textarea wire:model="rules_markdown" rows="6" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none font-mono text-xs"></textarea>
             @error('rules_markdown') <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
      </label>
 
@@ -66,6 +66,13 @@
                     <option value="{{ $s }}">@php echo $s; @endphp</option>
                 @endforeach
          </select>
+      </label>
+
+        <label class="flex flex-col gap-1">
+            <span class="font-display text-xs uppercase tracking-wider text-chalk">Limite de equipes</span>
+            <input type="number" min="1" max="999" wire:model="max_teams" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none">
+            <span class="text-[11px] text-chalk">Número máximo de equipes que podem participar. Ajustável apenas aqui.</span>
+            @error('max_teams') <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
       </label>
 
         <div class="flex items-end justify-end gap-3">
@@ -105,7 +112,7 @@
                     <p class="text-ignite text-xs font-display font-semibold uppercase tracking-[0.18em] mb-1">Provas</p>
                     <h2 class="font-display font-bold text-2xl text-ink">@php echo $proofs->count(); @endphp prova(s) nesta competição</h2>
              </div>
-                <a href="{{ route('proofs.create', ['competition_id' => $this->competition->id]) }}" class="px-4 py-2 rounded-card border border-ink text-ink font-display font-semibold hover:bg-ink hover:text-paper transition-colors duration-200">
+                <a href="{{ route('admin.proofs.create', ['competition_id' => $this->competition->id]) }}" class="px-4 py-2 rounded-card border border-ink text-ink font-display font-semibold hover:bg-ink hover:text-paper transition-colors duration-200">
                     Adicionar prova
              </a>
          </header>
@@ -122,7 +129,7 @@
                                     <p class="text-chalk text-sm">@php echo $p->description ?? '—'; @endphp</p>
                                     <p class="text-[11px] uppercase tracking-wider text-chalk mt-2">@php echo $p->status; @endphp · {{ $p->stages_count ?? 0 }} etapas</p>
                              </div>
-                                <a href="{{ route('proofs.edit', $p->id) }}" class="text-ignite font-display font-semibold">Editar →</a>
+                                <a href="{{ route('admin.proofs.edit', $p->id) }}" class="text-ignite font-display font-semibold">Editar →</a>
                          </div>
                       </li>
                     @endforeach

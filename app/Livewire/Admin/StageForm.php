@@ -137,7 +137,7 @@ class StageForm extends Component
         $this->dispatch('stage-saved', stageId: $this->stage->id);
 
         session()->flash('success', 'Etapa salva.');
-        $this->redirectRoute('stages.edit', $this->stage->id);
+        $this->redirectRoute('admin.stages.edit', $this->stage->id);
     }
 
     private function syncHints(): void
@@ -175,7 +175,7 @@ class StageForm extends Component
         }
         $this->stage->delete();
         session()->flash('success', 'Etapa excluída.');
-        $this->redirectRoute('proofs.edit', $this->proof_id);
+        $this->redirectRoute('admin.proofs.edit', $this->proof_id);
     }
 
     public function regenerateQr(): void
