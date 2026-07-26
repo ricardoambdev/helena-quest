@@ -15,8 +15,8 @@ use Livewire\WithPagination;
 #[Title('Monitor de equipes')]
 class TeamMonitor extends Component
 {
-    public ?int $teamId;
-    public ?int $competitionFilter;
+    public ?int $teamId = null;
+    public ?int $competitionFilter = null;
 
     #[Computed]
     public function teams()

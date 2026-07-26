@@ -17,7 +17,7 @@ use Livewire\Component;
 class TeamForm extends Component
 {
     public ?Team $team = null;
-    public ?int $competition_id;
+    public ?int $competition_id = null;
 
     public string $name = '';
     public string $color_hex = '';

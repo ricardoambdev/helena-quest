@@ -15,7 +15,7 @@ use Livewire\Component;
 class StageForm extends Component
 {
     public ?Stage $stage = null;
-    public ?int $proof_id;
+    public ?int $proof_id = null;
 
     public string $name = '';
     public string $description = '';

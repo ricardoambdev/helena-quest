@@ -18,7 +18,7 @@ class TeamIndex extends Component
     use WithPagination;
 
     public string $search = '';
-    public ?int $competitionFilter;
+    public ?int $competitionFilter = null;
     public string $statusFilter = '';
 
     protected $queryString = [

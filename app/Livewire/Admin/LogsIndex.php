@@ -17,7 +17,7 @@ class LogsIndex extends Component
 {
     use WithPagination;
 
-    public ?int $teamFilter;
+    public ?int $teamFilter = null;
     public string $actionFilter = '';
     public string $successFilter = '';
 

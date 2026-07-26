@@ -15,7 +15,7 @@ use Livewire\Component;
 #[Title('Etapas')]
 class StageIndex extends Component
 {
-    public ?int $proofFilter;
+    public ?int $proofFilter = null;
 
     #[Computed]
     public function proofs()

@@ -17,7 +17,7 @@ use Livewire\Component;
 class FinalEnigmaForm extends Component
 {
     public ?FinalEnigma $enigma = null;
-    public ?int $competition_id;
+    public ?int $competition_id = null;
 
     public string $word = '';
     public int $max_attempts = 3;

@@ -16,7 +16,7 @@ use Livewire\Component;
 class ProofForm extends Component
 {
     public ?Proof $proof = null;
-    public ?int $competition_id;
+    public ?int $competition_id = null;
 
     public string $name = '';
     public string $description = '';

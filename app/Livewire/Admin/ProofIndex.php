@@ -14,7 +14,7 @@ use Livewire\Component;
 #[Title('Provas')]
 class ProofIndex extends Component
 {
-    public ?int $competitionId;
+    public ?int $competitionId = null;
 
     #[Computed]
     public function competitionsList()

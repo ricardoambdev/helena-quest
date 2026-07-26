@@ -15,7 +15,7 @@ use Livewire\Component;
 #[Title('Ranking ao vivo')]
 class RankingLive extends Component
 {
-    public ?int $competitionId;
+    public ?int $competitionId = null;
 
     #[Computed]
     public function competitionsList()
