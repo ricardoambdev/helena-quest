@@ -50,3 +50,4 @@ Thumbs.db
 *.swp
 *.symbols
 *.map.json
+*.hprof
