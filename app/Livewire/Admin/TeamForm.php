@@ -27,9 +27,16 @@ class TeamForm extends Component
     public string $color_hex = '';
     public string $username = '';
     public string $password = '';
+    public string $generatedPassword = '';
     public string $status = 'active';
     public string $description = '';
     public $logo = null;
+
+    private static function generatePassword(): string
+    {
+        $chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        return substr(str_shuffle(str_repeat($chars, 6)), 0, 6);
+    }
 
     public function mount(?Team $team = null, ?int $competition_id = null): void
     {
@@ -45,6 +52,9 @@ class TeamForm extends Component
                 'description' => $team->description ?? '',
             ]);
             $this->competition_id = $team->competition_id;
+        } else {
+            $this->generatedPassword = static::generatePassword();
+            $this->password = $this->generatedPassword;
         }
     }
 
@@ -97,13 +107,24 @@ class TeamForm extends Component
 
         if ($this->team?->exists) {
             $this->team->update($payload);
+            if (!empty($data['password'])) {
+                $this->generatedPassword = $data['password'];
+                $this->password = $data['password'];
+            }
             session()->flash('success', 'Equipe atualizada.');
         } else {
             $this->team = Team::create($payload);
-            session()->flash('success', 'Equipe criada. Usuário: ' . $this->team->username);
+            $this->generatedPassword = $data['password'];
+            session()->flash('success', 'Equipe criada!');
         }
 
         $this->redirectRoute('admin.teams.edit', $this->team->id);
+    }
+
+    public function regeneratePassword(): void
+    {
+        $this->generatedPassword = static::generatePassword();
+        $this->password = $this->generatedPassword;
     }
 
     public function removeLogo(): void

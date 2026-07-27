@@ -46,11 +46,20 @@
 
         <label class="flex flex-col gap-1">
             <span class="font-display text-xs uppercase tracking-wider text-chalk">Senha</span>
-            <input type="password" wire:model="password" placeholder="{{ $this->team?->exists ? 'Deixe em branco para manter' : '' }}" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none">
-            @error("password") <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
-            @if ($this->team?->exists)
-                <span class="text-[11px] text-chalk">Deixe em branco para manter a senha atual</span>
+            <div class="flex gap-2">
+                <input type="text" readonly value="{{ $this->generatedPassword }}"
+                       class="flex-1 px-3 py-2 rounded-card border border-rule bg-gray-50 outline-none font-mono tracking-widest cursor-pointer"
+                       onclick="this.select()" title="Clique para copiar">
+                <button type="button" wire:click="regeneratePassword"
+                        class="px-3 py-2 rounded-card bg-rule text-ink font-display text-sm font-semibold hover:bg-chalk/20 transition-colors shrink-0">
+                    Gerar
+                </button>
+            </div>
+            @if ($this->generatedPassword !== '')
+                <span class="text-[11px] text-chalk">Copie a senha — não será exibida novamente após recarregar a página</span>
             @endif
+            <input type="hidden" wire:model="password">
+            @error("password") <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
         </label>
 
         <label class="flex flex-col gap-1 md:col-span-2">
