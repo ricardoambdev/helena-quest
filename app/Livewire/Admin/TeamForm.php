@@ -47,15 +47,12 @@ class TeamForm extends Component
                 'name' => $team->name,
                 'color_hex' => $team->color_hex,
                 'username' => $team->username,
-                'password' => '',
                 'status' => $team->status,
                 'description' => $team->description ?? '',
             ]);
             $this->competition_id = $team->competition_id;
-        } else {
-            $this->generatedPassword = static::generatePassword();
-            $this->password = $this->generatedPassword;
         }
+        $this->regeneratePassword();
     }
 
     protected function rules(): array

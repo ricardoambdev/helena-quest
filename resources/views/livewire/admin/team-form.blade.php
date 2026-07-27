@@ -56,7 +56,7 @@
                 </button>
             </div>
             @if ($this->generatedPassword !== '')
-                <span class="text-[11px] text-chalk">Copie a senha — não será exibida novamente após recarregar a página</span>
+                <span class="text-[11px] text-chalk">Copie a senha — uma nova é gerada automaticamente ao abrir a página</span>
             @endif
             <input type="hidden" wire:model="password">
             @error("password") <span class="text-ember text-xs">@php echo $message; @endphp</span> @enderror
