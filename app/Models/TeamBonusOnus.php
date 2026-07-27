@@ -12,6 +12,8 @@ class TeamBonusOnus extends Model
 {
     use HasFactory;
 
+    protected $table = 'team_bonus_onus';
+
     protected $fillable = [
         'team_id',
         'bonus_onus_id',

@@ -12,6 +12,7 @@ return new class extends Migration
         if (Schema::hasColumn('team_progress', 'proof_id')) {
             Schema::table('team_progress', function (Blueprint $table) {
                 try { $table->dropForeign(['proof_id']); } catch (\Exception $e) {}
+                try { $table->dropUnique(['team_id', 'proof_id']); } catch (\Exception $e) {}
                 $table->dropColumn('proof_id');
             });
         }
@@ -72,7 +73,67 @@ return new class extends Migration
             });
         }
 
-        // 6. Drop old tables
+        // 6. stages: drop proof_id, add competition_id
+        if (Schema::hasColumn('stages', 'proof_id')) {
+            Schema::table('stages', function (Blueprint $table) {
+                try { $table->dropForeign(['proof_id']); } catch (\Exception $e) {}
+                try { $table->dropUnique(['proof_id', 'order']); } catch (\Exception $e) {}
+                try { $table->dropIndex('stages_proof_id_index'); } catch (\Exception $e) {}
+                $table->dropColumn('proof_id');
+            });
+        }
+        if (!Schema::hasColumn('stages', 'competition_id')) {
+            Schema::table('stages', function (Blueprint $table) {
+                $table->foreignId('competition_id')->nullable()->constrained()->cascadeOnDelete();
+                $table->unique(['competition_id', 'order']);
+            });
+        }
+        if (!Schema::hasColumn('stages', 'stage_type')) {
+            Schema::table('stages', function (Blueprint $table) {
+                $table->string('stage_type', 30)->default('charada')->after('name');
+            });
+        }
+        if (!Schema::hasColumn('stages', 'sub_questions')) {
+            Schema::table('stages', function (Blueprint $table) { $table->json('sub_questions')->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'compass_direction')) {
+            Schema::table('stages', function (Blueprint $table) { $table->string('compass_direction', 10)->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'compass_steps')) {
+            Schema::table('stages', function (Blueprint $table) { $table->unsignedSmallInteger('compass_steps')->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'compass_landmarks')) {
+            Schema::table('stages', function (Blueprint $table) { $table->json('compass_landmarks')->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'treasure_hint')) {
+            Schema::table('stages', function (Blueprint $table) { $table->text('treasure_hint')->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'unlock_password')) {
+            Schema::table('stages', function (Blueprint $table) { $table->string('unlock_password', 20)->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'unlock_order')) {
+            Schema::table('stages', function (Blueprint $table) { $table->unsignedTinyInteger('unlock_order')->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'unlock_phrase')) {
+            Schema::table('stages', function (Blueprint $table) { $table->string('unlock_phrase', 100)->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'word')) {
+            Schema::table('stages', function (Blueprint $table) { $table->string('word', 100)->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'max_attempts')) {
+            Schema::table('stages', function (Blueprint $table) { $table->unsignedTinyInteger('max_attempts')->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'cooldown_minutes')) {
+            Schema::table('stages', function (Blueprint $table) { $table->unsignedSmallInteger('cooldown_minutes')->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'word_score')) {
+            Schema::table('stages', function (Blueprint $table) { $table->unsignedSmallInteger('word_score')->nullable(); });
+        }
+        if (!Schema::hasColumn('stages', 'wrong_word_penalty')) {
+            Schema::table('stages', function (Blueprint $table) { $table->unsignedSmallInteger('wrong_word_penalty')->nullable(); });
+        }
+
+        // 7. Drop old tables
         Schema::dropIfExists('team_final_enigma_letters');
         Schema::dropIfExists('team_final_enigma_attempts');
         Schema::dropIfExists('final_enigma_qr_codes');

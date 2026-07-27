@@ -271,9 +271,14 @@
 - [x] Telao: stages em vez de proofs, enigmaFinalStatus por stage_type
 - [x] Flutter: HomeScreen, StageScreen, CompassScreen, FinalEnigmaScreen atualizados
 - [x] Admin Dashboard/StageIndex corrigidos
-- [~] Admin: refatorar ProofForm/Index/Report, FinalEnigmaForm, CompetitionReport, blades
-- [ ] Admin: StageForm atualizar para competition_id e stage_type
-- [ ] Tests: atualizar GameEngine/API tests para novo schema
+- [x] Admin: ProofForm/Index/Report refatorados (stubs com redirect ou stages)
+- [x] Admin: FinalEnigmaForm refatorado (cofres em vez de letras, usa stage_type='enigma_final')
+- [x] Admin: CompetitionForm/Index — proofs → stages
+- [x] Admin: StageForm — competition_id em vez de proof_id, suporte stage_type
+- [x] Admin: CompetitionReport, TeamReport, TeamMonitor — sem proof references
+- [x] Admin: routes/web.php — rotas proof removidas, stage route usa competition_id
+- [x] Admin: sidebar — "Provas" removido
+- [x] Tests: atualizar GameEngine/API tests para novo schema (21 unit + 9 feature — todos passando)
 
 ### 6.6 Deploy
 - [ ] Configurar Laravel Forge / Vapor
@@ -341,4 +346,6 @@
 | 2026-07-27 | 6.7 | Flutter: HomeScreen, StageScreen, CompassScreen, FinalEnigmaScreen, ProfileScreen todos atualizados para novo schema |
 | 2026-07-27 | 6.7 | Telão atualizado sem Proof: stages direto da Competition; enigmaFinalStatus por stage_type |
 | 2026-07-27 | 6.7 | API routes: unlock, scanBonusOnus, final-enigma/validate-cofre adicionados |
-| 2026-07-27 | 6.7 | Admin Dashboard/StageIndex corrigidos (Proof removido); ProofForm/ProofIndex/ProofReport/FinalEnigmaForm pendentes refatoração |
+| 2026-07-27 | 6.7 | Admin Dashboard/StageIndex corrigidos (Proof removido); ProofForm/ProofIndex/ProofReport/FinalEnigmaForm refatorados |
+| 2026-07-27 | 6.7 | Admin Completo: Proof removido, CompetitionForm usa stages, StageForm competition_id+stage_type, FinalEnigma usa cofres, blades atualizados |
+| 2026-07-27 | 6.7 | Tests atualizados: StageFactory (competition_id+stage_type), BonusOnusFactory criada, CompetitionSeeder sem Proof/FinalEnigma, GameEngineTest (21 tests) e StageApiTest (9 tests) — 32/32 passando ✅ |

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
+use App\Models\BonusOnus;
 use App\Models\Competition;
-use App\Models\Hint;
-use App\Models\Proof;
 use App\Models\Stage;
 use App\Models\Team;
+use App\Models\TeamProgress;
 use App\Models\TeamStageProgress;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class StageApiTest extends TestCase
@@ -20,7 +20,6 @@ class StageApiTest extends TestCase
 
     private Team $team;
     private Stage $stage;
-    private Proof $proof;
     private Competition $competition;
 
     protected function setUp(): void
@@ -28,166 +27,204 @@ class StageApiTest extends TestCase
         parent::setUp();
 
         $this->competition = Competition::factory()->create(['status' => 'ongoing']);
-        $this->team = Team::factory()->create(['competition_id' => $this->competition->id, 'status' => 'active']);
-        $this->proof = Proof::factory()->create(['competition_id' => $this->competition->id]);
+        $this->team = Team::factory()->create([
+            'competition_id' => $this->competition->id,
+            'status' => 'active',
+        ]);
         $this->stage = Stage::factory()->create([
-            'proof_id' => $this->proof->id,
-            'correct_answer' => '12345',
+            'competition_id' => $this->competition->id,
+            'stage_type' => 'charada',
+            'unlock_password' => '12345',
+            'correct_answer' => 'resposta',
             'secret_number' => '9999',
-            'qr_code_uuid' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-            'latitude' => -23.550520,
-            'longitude' => -46.633309,
-            'radius' => 30,
-            'score' => 100,
+            'score' => 50,
             'order' => 1,
         ]);
     }
 
-    public function test_current_stage_requires_auth(): void
+    public function test_unlock_stage_success(): void
     {
-        $response = $this->getJson('/api/stages/current');
-        $response->assertUnauthorized();
-    }
+        Sanctum::actingAs($this->team);
 
-    public function test_current_stage_returns_stage(): void
-    {
-        TeamStageProgress::create([
-            'team_id' => $this->team->id,
-            'stage_id' => $this->stage->id,
-            'status' => 'active',
-        ]);
-
-        \App\Models\TeamProgress::create([
-            'team_id' => $this->team->id,
-            'proof_id' => $this->proof->id,
-            'current_stage_id' => $this->stage->id,
-            'started_at' => now(),
-        ]);
-
-        $response = $this->actingAs($this->team, 'sanctum')->getJson('/api/stages/current');
-
-        $response->assertOk();
-        $response->assertJsonPath('has_stage', true);
-        $response->assertJsonPath('stage.name', $this->stage->name);
-        $response->assertJsonStructure([
-            'stage' => ['id', 'name', 'hints'],
-        ]);
-    }
-
-    public function test_validate_qr_success(): void
-    {
-        $response = $this->actingAs($this->team, 'sanctum')->postJson("/api/stages/{$this->stage->id}/validate-qr", [
-            'qr_code_uuid' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-            'latitude' => -23.550520,
-            'longitude' => -46.633309,
+        $response = $this->postJson("/api/stages/{$this->stage->id}/unlock", [
+            'code' => '12345',
         ]);
 
         $response->assertOk();
         $response->assertJsonPath('success', true);
+        $response->assertJsonPath('message', 'Etapa desbloqueada!');
+        $response->assertJsonStructure(['success', 'message', 'progress']);
+
+        $this->assertDatabaseHas('team_stage_progress', [
+            'team_id' => $this->team->id,
+            'stage_id' => $this->stage->id,
+            'status' => 'active',
+        ]);
     }
 
-    public function test_validate_qr_invalid(): void
+    public function test_unlock_stage_wrong_password(): void
     {
-        $response = $this->actingAs($this->team, 'sanctum')->postJson("/api/stages/{$this->stage->id}/validate-qr", [
-            'qr_code_uuid' => '00000000-0000-0000-0000-000000000000',
-            'latitude' => -23.550520,
-            'longitude' => -46.633309,
+        Sanctum::actingAs($this->team);
+
+        $response = $this->postJson("/api/stages/{$this->stage->id}/unlock", [
+            'code' => 'wrongpass',
         ]);
 
         $response->assertStatus(422);
         $response->assertJsonPath('success', false);
-        $response->assertJsonPath('error', 'QRCODE_INVALID');
+        $response->assertJsonPath('message', 'Senha incorreta.');
     }
 
-    public function test_answer_correct(): void
+    public function test_unlock_stage_no_password_configured(): void
     {
-        TeamStageProgress::create([
-            'team_id' => $this->team->id,
-            'stage_id' => $this->stage->id,
-            'status' => 'active',
+        $stage = Stage::factory()->create([
+            'competition_id' => $this->competition->id,
+            'unlock_password' => null,
+            'order' => 2,
         ]);
 
-        $response = $this->actingAs($this->team, 'sanctum')->postJson("/api/stages/{$this->stage->id}/answer", [
-            'answer' => '12345',
+        Sanctum::actingAs($this->team);
+
+        $response = $this->postJson("/api/stages/{$stage->id}/unlock", [
+            'code' => 'qualquer',
         ]);
 
-        $response->assertOk();
-        $response->assertJsonPath('correct', true);
-        $response->assertJsonPath('secret_number', '9999');
+        $response->assertStatus(422);
+        $response->assertJsonPath('success', false);
+        $response->assertJsonPath('message', 'Esta etapa nao possui senha de desbloqueio.');
     }
 
-    public function test_hints_list(): void
+    public function test_scan_bonus(): void
     {
-        Hint::factory()->create([
+        $bonus = BonusOnus::factory()->bonus()->create([
             'stage_id' => $this->stage->id,
-            'hint_text' => 'Procure perto do sino.',
-            'price' => 25,
         ]);
 
-        TeamStageProgress::create([
+        TeamProgress::create([
             'team_id' => $this->team->id,
-            'stage_id' => $this->stage->id,
-            'status' => 'active',
+            'competition_id' => $this->competition->id,
+            'started_at' => now(),
         ]);
 
-        $response = $this->actingAs($this->team, 'sanctum')->getJson("/api/stages/{$this->stage->id}/hints");
+        Sanctum::actingAs($this->team);
 
-        $response->assertOk();
-        $response->assertJsonCount(1, 'hints');
-        $response->assertJsonPath('hints.0.price', 25);
-        $response->assertJsonPath('hints.0.locked', true);
-    }
-
-    public function test_hints_revealed_after_buy(): void
-    {
-        $hint = Hint::factory()->create([
-            'stage_id' => $this->stage->id,
-            'hint_text' => 'Procure perto do sino.',
-            'price' => 25,
-        ]);
-
-        TeamStageProgress::create([
-            'team_id' => $this->team->id,
-            'stage_id' => $this->stage->id,
-            'status' => 'active',
-            'hint_used' => true,
-        ]);
-
-        $response = $this->actingAs($this->team, 'sanctum')->getJson("/api/stages/{$this->stage->id}/hints");
-
-        $response->assertOk();
-        $response->assertJsonPath('hints.0.locked', false);
-        $response->assertJsonPath('hints.0.text', 'Procure perto do sino.');
-    }
-
-    public function test_send_photo(): void
-    {
-        TeamStageProgress::create([
-            'team_id' => $this->team->id,
-            'stage_id' => $this->stage->id,
-            'status' => 'active',
-        ]);
-
-        $file = UploadedFile::fake()->image('foto.jpg', 400, 400);
-
-        $response = $this->actingAs($this->team, 'sanctum')->postJson("/api/stages/{$this->stage->id}/send-photo", [
-            'photo' => $file,
+        $response = $this->postJson('/api/bonus-onus/scan', [
+            'uuid' => $bonus->qr_code_uuid,
         ]);
 
         $response->assertOk();
         $response->assertJsonPath('success', true);
-        $response->assertJsonPath('status', 'photo_sent');
+        $response->assertJsonPath('bonus_onus.name', $bonus->name);
+        $response->assertJsonPath('bonus_onus.points', 50);
+        $response->assertJsonPath('bonus_onus.type', 'bonus');
+        $response->assertJsonStructure(['success', 'bonus_onus', 'total_score']);
     }
 
-    public function test_competition_status_endpoint(): void
+    public function test_scan_onus(): void
     {
-        $response = $this->actingAs($this->team, 'sanctum')->getJson('/api/public/competition/' . $this->competition->id);
+        $onus = BonusOnus::factory()->onus()->create([
+            'stage_id' => $this->stage->id,
+        ]);
+
+        TeamProgress::create([
+            'team_id' => $this->team->id,
+            'competition_id' => $this->competition->id,
+            'started_at' => now(),
+        ]);
+
+        Sanctum::actingAs($this->team);
+
+        $response = $this->postJson('/api/bonus-onus/scan', [
+            'uuid' => $onus->qr_code_uuid,
+        ]);
 
         $response->assertOk();
-        $response->assertJsonStructure([
-            'id', 'name', 'status', 'teams', 'proofs',
+        $response->assertJsonPath('success', true);
+        $response->assertJsonPath('bonus_onus.points', -30);
+        $response->assertJsonPath('bonus_onus.type', 'onus');
+    }
+
+    public function test_scan_bonus_already_collected(): void
+    {
+        $bonus = BonusOnus::factory()->bonus()->create([
+            'stage_id' => $this->stage->id,
         ]);
-        $response->assertJsonPath('name', $this->competition->name);
-        $response->assertJsonPath('status', $this->competition->status);
+
+        TeamProgress::create([
+            'team_id' => $this->team->id,
+            'competition_id' => $this->competition->id,
+            'started_at' => now(),
+        ]);
+
+        Sanctum::actingAs($this->team);
+
+        $response1 = $this->postJson('/api/bonus-onus/scan', [
+            'uuid' => $bonus->qr_code_uuid,
+        ]);
+        $response1->assertOk();
+
+        $response2 = $this->postJson('/api/bonus-onus/scan', [
+            'uuid' => $bonus->qr_code_uuid,
+        ]);
+
+        $response2->assertStatus(422);
+        $response2->assertJsonPath('success', false);
+        $response2->assertJsonPath('message', 'Este bonus/onus ja foi coletado.');
+    }
+
+    public function test_unauthenticated_cannot_access(): void
+    {
+        $response = $this->postJson("/api/stages/{$this->stage->id}/unlock", [
+            'code' => '12345',
+        ]);
+
+        $response->assertUnauthorized();
+    }
+
+    public function test_validate_qr(): void
+    {
+        $stage = Stage::factory()->create([
+            'competition_id' => $this->competition->id,
+            'qr_code_uuid' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+            'latitude' => null,
+            'longitude' => null,
+            'order' => 2,
+        ]);
+
+        Sanctum::actingAs($this->team);
+
+        $response = $this->postJson("/api/stages/{$stage->id}/validate-qr", [
+            'qr_code_uuid' => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('success', true);
+        $response->assertJsonStructure(['success', 'progress']);
+
+        $this->assertDatabaseHas('team_stage_progress', [
+            'team_id' => $this->team->id,
+            'stage_id' => $stage->id,
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_answer_stage(): void
+    {
+        TeamStageProgress::create([
+            'team_id' => $this->team->id,
+            'stage_id' => $this->stage->id,
+            'status' => 'active',
+            'started_at' => now(),
+        ]);
+
+        Sanctum::actingAs($this->team);
+
+        $response = $this->postJson("/api/stages/{$this->stage->id}/answer", [
+            'answer' => 'resposta',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('correct', true);
+        $response->assertJsonStructure(['correct', 'message', 'score_earned']);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Proof;
+use App\Models\Competition;
 use App\Models\Stage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,8 +13,9 @@ class StageFactory extends Factory
     public function definition(): array
     {
         return [
-            'proof_id' => Proof::factory(),
+            'competition_id' => Competition::factory(),
             'name' => 'Etapa ' . fake()->word(),
+            'stage_type' => 'charada',
             'order' => fake()->numberBetween(1, 10),
             'narrative_text' => fake()->paragraph(),
             'correct_answer' => (string) fake()->randomNumber(5, true),
@@ -23,8 +24,8 @@ class StageFactory extends Factory
             'latitude' => fake()->latitude(),
             'longitude' => fake()->longitude(),
             'radius' => 30,
-            'score' => 100,
-            'penalty' => 10,
+            'score' => 50,
+            'penalty' => 0,
         ];
     }
 }

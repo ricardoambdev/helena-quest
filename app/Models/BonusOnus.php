@@ -13,6 +13,8 @@ class BonusOnus extends Model
 {
     use HasFactory;
 
+    protected $table = 'bonus_onus';
+
     protected $fillable = [
         'stage_id',
         'type',
