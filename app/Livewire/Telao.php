@@ -83,15 +83,13 @@ class Telao extends Component
             ->get()
             ->groupBy('stage_id');
 
-        return $this->competition->stages->map(fn ($stage) => [
-            'id' => $stage->id,
-            'name' => $stage->name,
-            'order' => $stage->order,
-            'stage_type' => $stage->stage_type,
+        $stages = $this->competition->stages->map(fn ($stage) => [
             'completed_count' => $allStagesProgress->get($stage->id)?->where('status', 'completed')->count() ?? 0,
             'active_count' => $allStagesProgress->get($stage->id)?->filter(fn ($p) => in_array($p->status, ['active', 'photo_sent', 'answered_wrong'], true))->count() ?? 0,
             'total' => count($teamIds),
         ])->sortBy('order')->values()->toArray();
+
+        return [['name' => 'Etapas', 'stages' => $stages]];
     }
 
     #[Computed]
