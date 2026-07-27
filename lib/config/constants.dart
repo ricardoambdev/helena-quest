@@ -13,7 +13,7 @@ class AppConstants {
   static const int maxPhotoSizeMB = 10;
   static const int maxAudioSizeMB = 20;
 
-  static const double mapDefaultLat = -23.5505;
-  static const double mapDefaultLng = -46.6333;
+  static const double mapDefaultLat = -21.9965;
+  static const double mapDefaultLng = -47.4265;
   static const double mapDefaultZoom = 15.0;
 }

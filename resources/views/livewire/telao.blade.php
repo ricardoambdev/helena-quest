@@ -207,8 +207,9 @@
                         zoomControl: true,
                         attributionControl: false,
                     });
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap',
                     }).addTo(this.map);
                     if (fallback) fallback.style.display = 'none';
                     this.mapInitialized = true;

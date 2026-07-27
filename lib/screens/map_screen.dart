@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:helena_quest_app/config/theme.dart';
 import 'package:helena_quest_app/config/constants.dart';
@@ -15,9 +16,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  // ignore: unused_field
-  GoogleMapController? _mapController;
-  Set<Marker> _markers = {};
+  final MapController _mapController = MapController();
+  List<Marker> _markers = [];
 
   @override
   void initState() {
@@ -33,15 +33,20 @@ class _MapScreenState extends State<MapScreen> {
         final lng = (t['longitude'] as num?)?.toDouble() ?? 0;
         final name = t['name'] as String? ?? 'Time';
         return Marker(
-          markerId: MarkerId(t['id']?.toString() ?? name),
-          position: LatLng(lat, lng),
-          infoWindow: InfoWindow(title: name),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange,
+          point: LatLng(lat, lng),
+          child: GestureDetector(
+            onTap: () => _showTeamInfo(name),
+            child: const Icon(Icons.location_on, color: AppTheme.ignite, size: 36),
           ),
         );
-      }).toSet();
+      }).toList();
     }
+  }
+
+  void _showTeamInfo(String name) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(name), duration: const Duration(seconds: 2)),
+    );
   }
 
   void _atualizar() async {
@@ -55,14 +60,13 @@ class _MapScreenState extends State<MapScreen> {
           final lng = (t['longitude'] as num?)?.toDouble() ?? 0;
           final name = t['name'] as String? ?? 'Time';
           return Marker(
-            markerId: MarkerId(t['id']?.toString() ?? name),
-            position: LatLng(lat, lng),
-            infoWindow: InfoWindow(title: name),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueOrange,
+            point: LatLng(lat, lng),
+            child: GestureDetector(
+              onTap: () => _showTeamInfo(name),
+              child: const Icon(Icons.location_on, color: AppTheme.ignite, size: 36),
             ),
           );
-        }).toSet();
+        }).toList();
       });
     }
   }
@@ -80,21 +84,25 @@ class _MapScreenState extends State<MapScreen> {
         ),
         centerTitle: true,
       ),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: LatLng(
+      body: FlutterMap(
+        mapController: _mapController,
+        options: MapOptions(
+          initialCenter: LatLng(
             AppConstants.mapDefaultLat,
             AppConstants.mapDefaultLng,
           ),
-          zoom: AppConstants.mapDefaultZoom,
+          initialZoom: AppConstants.mapDefaultZoom,
+          interactionOptions: const InteractionOptions(
+            flags: InteractiveFlag.all,
+          ),
         ),
-        markers: _markers,
-        onMapCreated: (controller) {
-          _mapController = controller;
-        },
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
-        mapType: MapType.normal,
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.helenaquest.app',
+          ),
+          MarkerLayer(markers: _markers),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _atualizar,
