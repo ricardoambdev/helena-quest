@@ -45,6 +45,7 @@ class ApiService {
     final h = <String, String>{
       'Accept': 'application/json',
       'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
     };
     if (withAuth && _token != null) {
       h['Authorization'] = 'Bearer $_token';

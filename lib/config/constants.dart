@@ -4,13 +4,13 @@ class AppConstants {
   static String get baseUrl {
     const fromDefine = String.fromEnvironment('API_URL');
     if (fromDefine.isNotEmpty) return fromDefine;
-    return 'http://10.10.10.79:8000/api';
+    return 'https://washstand-obstinate-demotion.ngrok-free.dev/api';
   }
 
   static String get wsUrl {
     const fromDefine = String.fromEnvironment('WS_URL');
     if (fromDefine.isNotEmpty) return fromDefine;
-    return 'ws://10.10.10.79:8080';
+    return 'wss://washstand-obstinate-demotion.ngrok-free.dev:8080';
   }
 
   static const Duration requestTimeout = Duration(seconds: 30);
