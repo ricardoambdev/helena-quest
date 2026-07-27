@@ -6,6 +6,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Competition;
 use App\Models\Team;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
@@ -27,16 +28,11 @@ class TeamForm extends Component
     public string $color_hex = '';
     public string $username = '';
     public string $password = '';
-    public string $generatedPassword = '';
     public string $status = 'active';
     public string $description = '';
     public $logo = null;
 
-    private static function generatePassword(): string
-    {
-        $chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-        return substr(str_shuffle(str_repeat($chars, 6)), 0, 6);
-    }
+    public bool $showPassword = false;
 
     public function mount(?Team $team = null, ?int $competition_id = null): void
     {
@@ -51,8 +47,16 @@ class TeamForm extends Component
                 'description' => $team->description ?? '',
             ]);
             $this->competition_id = $team->competition_id;
+            if ($team->password_plain) {
+                try {
+                    $this->password = Crypt::decryptString($team->password_plain);
+                } catch (\Exception) {
+                    $this->password = '';
+                }
+            } else {
+                $this->password = '';
+            }
         }
-        $this->regeneratePassword();
     }
 
     protected function rules(): array
@@ -62,7 +66,7 @@ class TeamForm extends Component
             'name' => ['required', 'string', 'max:255'],
             'color_hex' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'username' => ['required', 'string', 'max:255', 'unique:teams,username,' . ($this->team?->id ?? 'NULL')],
-            'password' => [$this->team?->exists ? 'nullable' : 'required', 'string', 'min:6'],
+            'password' => ['required', 'string', 'min:4'],
             'status' => ['required', 'in:active,blocked,inactive,eliminated'],
             'description' => ['nullable', 'string'],
             'logo' => ['nullable', 'image', 'mimes:png', 'max:512'],
@@ -89,13 +93,11 @@ class TeamForm extends Component
             'username' => $data['username'],
             'status' => $data['status'],
             'description' => $data['description'] ?? null,
+            'password_hash' => Hash::make($data['password']),
+            'password_plain' => Crypt::encryptString($data['password']),
+            'password_changed_at' => now(),
+            'password_changed_by' => auth()->id(),
         ];
-
-        if (!empty($data['password'])) {
-            $payload['password_hash'] = Hash::make($data['password']);
-            $payload['password_changed_at'] = now();
-            $payload['password_changed_by'] = auth()->id();
-        }
 
         if ($this->logo) {
             $path = $this->logo->store('teams/logos', 'public');
@@ -104,24 +106,18 @@ class TeamForm extends Component
 
         if ($this->team?->exists) {
             $this->team->update($payload);
-            if (!empty($data['password'])) {
-                $this->generatedPassword = $data['password'];
-                $this->password = $data['password'];
-            }
             session()->flash('success', 'Equipe atualizada.');
         } else {
             $this->team = Team::create($payload);
-            $this->generatedPassword = $data['password'];
             session()->flash('success', 'Equipe criada!');
         }
 
         $this->redirectRoute('admin.teams.edit', $this->team->id);
     }
 
-    public function regeneratePassword(): void
+    public function togglePassword(): void
     {
-        $this->generatedPassword = static::generatePassword();
-        $this->password = $this->generatedPassword;
+        $this->showPassword = !$this->showPassword;
     }
 
     public function removeLogo(): void
