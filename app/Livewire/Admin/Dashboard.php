@@ -8,6 +8,7 @@ use App\Models\Competition;
 use App\Models\Stage;
 use App\Models\Team;
 use App\Models\TeamProgress;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -45,6 +46,29 @@ class Dashboard extends Component
                 'updated_at' => $p->updated_at?->diffForHumans(),
             ])
             ->toArray();
+    }
+
+    #[Computed]
+    public function recentCompetitions(): Collection
+    {
+        return Competition::latest()->limit(5)->get();
+    }
+
+    #[Computed]
+    public function liveRanking(): Collection
+    {
+        return TeamProgress::with('team')
+            ->selectRaw('team_id, sum(total_score) as total_score, sum(stages_completed) as stages_completed')
+            ->groupBy('team_id')
+            ->orderByDesc('total_score')
+            ->limit(5)
+            ->get()
+            ->map(fn ($p) => (object) [
+                'name' => $p->team?->name ?? '?',
+                'color_hex' => $p->team?->color_hex ?? '#CCCCCC',
+                'total_score' => $p->total_score,
+                'stages_completed' => $p->stages_completed,
+            ]);
     }
 
     public function render(): mixed
