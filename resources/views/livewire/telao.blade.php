@@ -162,6 +162,8 @@
     </div>
 </div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     function     telaoData() {
         return {
@@ -186,27 +188,7 @@
                 this.loadFromServer();
                 this.startCarousel();
                 this.initEcho();
-                this.waitForMap();
-            },
-
-            mapsTimeout: null,
-
-            waitForMap() {
-                if (typeof google !== 'undefined' && google.maps && google.maps.Map) {
-                    this.initMap();
-                } else {
-                    var el = document.getElementById('telao-map');
-                    if (el) {
-                        document.getElementById('map-fallback').textContent = 'Aguardando Google Maps...';
-                    }
-                    if (this.mapsTimeout === null) {
-                        this.mapsTimeout = setTimeout(function() {
-                            var fb = document.getElementById('map-fallback');
-                            if (fb) fb.innerHTML = 'Mapa indisponivel — ative billing no Google Cloud Console';
-                        }.bind(this), 15000);
-                    }
-                    setTimeout(this.waitForMap.bind(this), 400);
-                }
+                this.initMap();
             },
 
             loadFromServer() {
@@ -217,30 +199,20 @@
             },
 
             initMap() {
-                if (typeof google === 'undefined') return;
                 var el = document.getElementById('telao-map');
                 if (!el) return;
                 var fallback = document.getElementById('map-fallback');
                 try {
-                    this.map = new google.maps.Map(el, {
+                    this.map = L.map(el, {
                         zoom: 15,
-                        center: { lat: -21.996, lng: -47.426 },
-                        disableDefaultUI: false,
-                        mapTypeControl: false,
-                        streetViewControl: false,
-                        fullscreenControl: false,
-                        styles: [
-                            { elementType: 'geometry', stylers: [{ color: '#1a1d23' }] },
-                            { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1d23' }] },
-                            { elementType: 'labels.text.fill', stylers: [{ color: '#7A7468' }] },
-                            { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2a2d35' }] },
-                            { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9e9e9e' }] },
-                            { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#242830' }] },
-                            { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f1115' }] },
-                        ],
+                        center: [-21.996, -47.426],
+                        zoomControl: true,
+                        attributionControl: false,
                     });
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                        maxZoom: 19,
+                    }).addTo(this.map);
                     if (fallback) fallback.style.display = 'none';
-                    if (this.mapsTimeout) { clearTimeout(this.mapsTimeout); this.mapsTimeout = null; }
                     this.mapInitialized = true;
                     this.loadMapLocations();
                 } catch (e) {
@@ -256,25 +228,20 @@
             },
 
             updateMapMarkers(locations) {
-                this.mapMarkers.forEach(function(m) { m.setMap(null); });
+                this.mapMarkers.forEach(function(m) { this.map.removeLayer(m); }.bind(this));
                 this.mapMarkers = [];
                 if (!locations || !locations.length) {
-                    new google.maps.Marker({
-                        position: { lat: -21.996, lng: -47.426 },
-                        map: this.map,
-                        title: 'Colegio Helena',
-                        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14, fillColor: '#FF6600', fillOpacity: 1, strokeWeight: 2, strokeColor: '#fff' },
-                    });
+                    var m = L.circleMarker([-21.996, -47.426], {
+                        radius: 14, color: '#fff', fillColor: '#FF6600', fillOpacity: 1, weight: 2,
+                    }).addTo(this.map).bindTooltip('Colegio Helena', { permanent: false });
+                    this.mapMarkers.push(m);
                     return;
                 }
                 locations.forEach(function(loc) {
                     if (loc.lat == null || loc.lng == null) return;
-                    var m = new google.maps.Marker({
-                        position: { lat: loc.lat, lng: loc.lng },
-                        map: this.map,
-                        title: loc.team_name,
-                        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14, fillColor: loc.team_color, fillOpacity: 1, strokeWeight: 2, strokeColor: '#fff' },
-                    });
+                    var m = L.circleMarker([loc.lat, loc.lng], {
+                        radius: 14, color: '#fff', fillColor: loc.team_color, fillOpacity: 1, weight: 2,
+                    }).addTo(this.map).bindTooltip(loc.team_name, { permanent: false });
                     this.mapMarkers.push(m);
                 }.bind(this));
             },
@@ -364,4 +331,3 @@
         }
     });
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}" async defer></script>
