@@ -196,10 +196,12 @@
                 var el = document.getElementById('telao-map');
                 if (!el) return;
                 var fallback = document.getElementById('map-fallback');
+                var school = this.schoolData;
+                var center = (school && school.lat && school.lng) ? [school.lat, school.lng] : [-21.996, -47.426];
                 try {
                     this.map = L.map(el, {
                         zoom: 15,
-                        center: [-21.996, -47.426],
+                        center: center,
                         zoomControl: false,
                         attributionControl: false,
                     });
@@ -220,13 +222,21 @@
                 if (this.schoolMarker) { this.map.removeLayer(this.schoolMarker); this.schoolMarker = null; }
                 const school = this.schoolData;
                 if (!school || !school.lat || !school.lng) return;
+                var inner = school.logo
+                    ? '<img src="' + school.logo + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">'
+                    : '<span style="color:#FF6600;font-weight:bold;font-size:16px;font-family:Inter,system-ui,sans-serif;line-height:1;">E</span>';
+                var html = '<div style="position:relative;width:36px;height:48px;">' +
+                    '<svg viewBox="0 0 36 48" width="36" height="48" style="display:block;">' +
+                    '<defs><filter id="pin-shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity=".4"/></filter></defs>' +
+                    '<path d="M18 1C8.6 1 1 8.6 1 18c0 11 17 28.5 17 28.5S35 29 35 18C35 8.6 27.4 1 18 1z" fill="#FF6600" stroke="#fff" stroke-width="2" filter="url(#pin-shadow)"/>' +
+                    '</svg>' +
+                    '<div style="position:absolute;top:4px;left:0;right:0;display:flex;align-items:center;justify-content:center;height:28px;pointer-events:none;">' + inner + '</div>' +
+                    '</div>';
                 var icon = L.divIcon({
                     className: 'school-pin',
-                    html: '<div style="width:32px;height:32px;background:#FF6600;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);">' +
-                        (school.logo ? '<img src="' + school.logo + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">' : '<span style="color:#fff;font-weight:bold;font-size:14px;">E</span>') +
-                        '</div>',
-                    iconSize: [32, 32],
-                    iconAnchor: [16, 16],
+                    html: html,
+                    iconSize: [36, 48],
+                    iconAnchor: [18, 48],
                 });
                 this.schoolMarker = L.marker([school.lat, school.lng], { icon: icon })
                     .addTo(this.map)
