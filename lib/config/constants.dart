@@ -1,9 +1,17 @@
 class AppConstants {
   AppConstants._();
 
-  // Mudar para URL de produção quando em deploy
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
-  static const String wsUrl = 'ws://127.0.0.1:8080';
+  static String get baseUrl {
+    const fromDefine = String.fromEnvironment('API_URL');
+    if (fromDefine.isNotEmpty) return fromDefine;
+    return 'http://10.10.10.79:8000/api';
+  }
+
+  static String get wsUrl {
+    const fromDefine = String.fromEnvironment('WS_URL');
+    if (fromDefine.isNotEmpty) return fromDefine;
+    return 'ws://10.10.10.79:8080';
+  }
 
   static const Duration requestTimeout = Duration(seconds: 30);
   static const Duration uploadTimeout = Duration(seconds: 120);
