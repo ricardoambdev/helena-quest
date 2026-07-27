@@ -41,6 +41,7 @@
         .grid-4x3 { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 8px; }
         .zone-cell { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 0; overflow: hidden; transition: background 0.3s; }
         .zone-cell.active { border-color: rgba(255,102,0,0.3); }
+        .team-marker, .school-pin { background: none !important; border: none !important; }
     </style>
     @livewireStyles
 </head>

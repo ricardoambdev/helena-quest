@@ -46,6 +46,7 @@ class Telao extends Component
         }
 
         $teamMap = $this->competition->teams->where('status', 'active')->keyBy('id');
+        $currentStageMap = $this->teamCurrentStage();
 
         $ranking = TeamProgress::whereIn('team_id', $teamIds)
             ->selectRaw('team_id, SUM(total_score) as total_score, SUM(total_time_seconds) as total_time, SUM(stages_completed) as total_stages, SUM(correct_answers) as correct_answers, SUM(photos_count) as photos_count, SUM(audios_count) as audios_count')
@@ -65,6 +66,7 @@ class Telao extends Component
                 'correct_answers' => (int) ($ranking->get($id)?->correct_answers ?? 0),
                 'photos_count' => (int) ($ranking->get($id)?->photos_count ?? 0),
                 'audios_count' => (int) ($ranking->get($id)?->audios_count ?? 0),
+                'current_stage' => $currentStageMap[$id] ?? '—',
             ])
             ->sortByDesc('total_score')
             ->values()
@@ -72,24 +74,50 @@ class Telao extends Component
     }
 
     #[Computed]
-    public function progress(): array
+    public function teamCurrentStage(): array
     {
         $teamIds = $this->activeTeamIds;
         if (empty($teamIds)) {
             return [];
         }
 
-        $allStagesProgress = TeamStageProgress::whereIn('team_id', $teamIds)
+        $stages = $this->competition->stages->keyBy('id');
+
+        $progress = TeamProgress::whereIn('team_id', $teamIds)
+            ->whereNotNull('current_stage_id')
             ->get()
-            ->groupBy('stage_id');
+            ->keyBy('team_id');
 
-        $stages = $this->competition->stages->map(fn ($stage) => [
-            'completed_count' => $allStagesProgress->get($stage->id)?->where('status', 'completed')->count() ?? 0,
-            'active_count' => $allStagesProgress->get($stage->id)?->filter(fn ($p) => in_array($p->status, ['active', 'photo_sent', 'answered_wrong'], true))->count() ?? 0,
-            'total' => count($teamIds),
-        ])->sortBy('order')->values()->toArray();
+        $map = [];
+        foreach ($teamIds as $id) {
+            $tp = $progress->get($id);
+            $stageId = $tp?->current_stage_id;
+            $map[$id] = $stageId && $stages->has($stageId)
+                ? $stages[$stageId]->name
+                : ($tp && !$tp->current_stage_id ? 'Finalizou' : '—');
+        }
+        return $map;
+    }
 
-        return [['name' => 'Etapas', 'stages' => $stages]];
+    #[Computed]
+    public function schoolLocation(): ?array
+    {
+        $comp = $this->competition;
+        if ($comp->school_latitude && $comp->school_longitude) {
+            return [
+                'lat' => (float) $comp->school_latitude,
+                'lng' => (float) $comp->school_longitude,
+                'name' => $comp->school_name ?? 'Escola',
+                'logo' => $comp->school_logo_path ? \Storage::url($comp->school_logo_path) : null,
+            ];
+        }
+        return null;
+    }
+
+    #[Computed]
+    public function progress(): array
+    {
+        return [];
     }
 
     #[Computed]
@@ -170,51 +198,13 @@ class Telao extends Component
                 'team_id' => $id,
                 'team_name' => $teamMap->get($id)?->name ?? '?',
                 'team_color' => $teamMap->get($id)?->color_hex ?? '#CCCCCC',
+                'crest_url' => $teamMap->get($id)?->crest_path ? \Storage::url($teamMap->get($id)->crest_path) : null,
                 'lat' => $latest->get($id)?->gps_lat,
                 'lng' => $latest->get($id)?->gps_lng,
                 'updated_at' => $latest->get($id)?->updated_at?->toIso8601String(),
             ])
             ->values()
             ->toArray();
-    }
-
-    #[Computed]
-    public function enigmaFinalStatus(): ?array
-    {
-        $teamIds = $this->activeTeamIds;
-        if (empty($teamIds)) {
-            return null;
-        }
-
-        $enigmaStage = $this->competition->stages->where('stage_type', 'enigma_final')->first();
-        if (!$enigmaStage) {
-            return null;
-        }
-
-        $teamMap = $this->competition->teams->where('status', 'active')->keyBy('id');
-
-        $completed = TeamStageProgress::where('stage_id', $enigmaStage->id)
-            ->where('status', 'completed')
-            ->pluck('team_id')
-            ->all();
-
-        $statuses = [];
-        foreach ($teamIds as $id) {
-            $statuses[] = [
-                'team_id' => $id,
-                'team_name' => $teamMap->get($id)?->name ?? '?',
-                'team_color' => $teamMap->get($id)?->color_hex ?? '#CCCCCC',
-                'solved' => in_array($id, $completed, true),
-                'word' => $enigmaStage->word,
-            ];
-        }
-
-        return [
-            'enabled' => true,
-            'stage_name' => $enigmaStage->name,
-            'word' => $enigmaStage->word,
-            'teams' => $statuses,
-        ];
     }
 
     public function render(): mixed

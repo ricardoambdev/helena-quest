@@ -1,173 +1,155 @@
-<div wire:poll.5s>
+<div wire:poll.3s class="relative h-screen w-full overflow-hidden bg-[#1a1d23] font-display">
     <div
         x-data="telaoData()"
         x-init="initTelao()"
         wire:ignore.self
-        class="flex flex-col h-screen w-full p-6 gap-4"
-        style="font-size:18px;"
+        class="absolute inset-0"
     >
-        {{-- ======== HEADER ======== --}}
-        <header class="flex items-center justify-between border-b border-white/10 pb-3 shrink-0">
+        {{-- MAPA FULL-SCREEN --}}
+        <div id="telao-map" class="absolute inset-0 z-0"></div>
+        <div id="map-fallback" class="absolute inset-0 z-0 flex items-center justify-center text-white/40 text-lg">
+            Carregando mapa...
+        </div>
+
+        {{-- OVERLAY: TITULO + RELOGIO (topo central) --}}
+        <div class="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/70 to-transparent px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <span class="text-ignite text-xs uppercase tracking-[0.18em] font-display font-extrabold">Helena Quest</span>
-                <h1 class="font-display font-extrabold text-4xl tracking-tight">{{ $this->competition->name }}</h1>
+                <h1 class="font-display font-extrabold text-3xl text-white drop-shadow-lg">{{ $this->competition->name }}</h1>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/20 text-white/80">
+                    {{ $this->competition->status }}
+                </span>
             </div>
-            <div class="flex items-center gap-6 text-sm font-mono">
-                <span class="text-chalk">{{ $this->competition->date?->format('d/m/Y') }}</span>
-                <span class="px-3 py-1 rounded-pill text-xs font-semibold uppercase tracking-wider
-                    @php
-                        $s = $this->competition->status;
-                        echo match($s) { 'active' => 'bg-green-900/40 text-green-400', 'finished' => 'bg-ember/20 text-ember', default => 'bg-white/10 text-chalk' };
-                    @endphp
-                ">{{ $s }}</span>
-                <span class="text-chalk" x-text="clock"></span>
-            </div>
-        </header>
+            <div class="flex items-center gap-4 text-white/80 font-mono text-lg" x-text="clock"></div>
+        </div>
 
-        {{-- ======== MAPA — largura total abaixo do header ======== --}}
-        <section class="shrink-0 w-full" wire:key="map-section" style="height:300px;">
-            <div class="relative w-full h-full bg-[#1a1d23] rounded-card overflow-hidden" wire:ignore>
-                <div id="telao-map" class="absolute inset-0 rounded-card"></div>
-                <div id="map-fallback" class="absolute inset-0 flex items-center justify-center text-chalk text-sm">
-                    Carregando mapa...
+        {{-- OVERLAY: PLACAR (canto direito) --}}
+        <div class="absolute top-20 right-4 z-10 w-72 space-y-3">
+            @forelse ($this->ranking as $i => $r)
+                <div class="backdrop-blur-md bg-black/50 rounded-2xl border border-white/10 px-5 py-4 shadow-2xl"
+                     style="border-left: 4px solid {{ $r['color_hex'] }};">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-mono font-bold text-3xl text-white/40 w-8 shrink-0">{{ $i + 1 }}º</span>
+                        @if ($r['crest_url'])
+                            <img src="{{ $r['crest_url'] }}" alt="" class="w-10 h-10 rounded-full object-cover shrink-0 ring-2" style="ring-color: {{ $r['color_hex'] }};">
+                        @endif
+                        <div class="min-w-0 flex-1">
+                            <p class="font-display font-bold text-xl text-white truncate drop-shadow">{{ $r['name'] }}</p>
+                            <p class="text-white/50 text-sm font-mono">{{ $r['current_stage'] }}</p>
+                        </div>
+                        <span class="font-display font-extrabold text-4xl tabular-nums drop-shadow" style="color: {{ $r['color_hex'] }};">
+                            {{ $r['total_score'] }}
+                        </span>
+                    </div>
+                    <div class="flex gap-4 text-white/40 text-xs font-mono">
+                        <span>{{ $r['total_stages'] }} etapas</span>
+                        <span>{{ gmdate('H:i:s', $r['total_time']) }}</span>
+                    </div>
                 </div>
-            </div>
-        </section>
+            @empty
+                <div class="backdrop-blur-md bg-black/50 rounded-2xl px-5 py-4 text-white/50">
+                    Nenhuma equipe ativa
+                </div>
+            @endforelse
+        </div>
 
-        {{-- ======== MAIN GRID (2 columns) — Livewire updates these via wire:poll ======== --}}
-        <div class="flex-1 grid grid-cols-12 gap-4 min-h-0">
+        {{-- OVERLAY: FOTOS + AUDIO (parte inferior) --}}
+        <div class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/70 to-transparent px-6 pb-4 pt-12">
+            <div class="grid grid-cols-12 gap-4">
 
-            {{-- COL 1: RANKING (3/12) --}}
-            <section class="col-span-3 flex flex-col min-h-0">
-                <h2 class="font-display font-bold text-xl text-ignite mb-3 uppercase tracking-wider text-sm">Classificacao</h2>
-                <ol class="flex-1 space-y-2 overflow-y-auto scrollbar-thin pr-1">
-                    @forelse ($this->ranking as $i => $r)
-                        <li class="flex items-center gap-3 bg-white/[0.03] rounded-card px-4 py-3 border-l-[3px]" style="border-left-color: {{ $r['color_hex'] }};">
-                            <span class="font-display font-extrabold text-2xl text-chalk w-8 text-center shrink-0">{{ $i + 1 }}</span>
-                            @if ($r['crest_url'])
-                                <img src="@php echo $r['crest_url']; @endphp" alt="" class="w-8 h-8 rounded-full object-cover shrink-0">
-                            @endif
-                            <div class="min-w-0 flex-1">
-                                <p class="font-display font-bold text-lg truncate">{{ $r['name'] }}</p>
-                                <p class="text-chalk text-xs font-mono">{{ $r['total_stages'] }} etapas &middot; {{ gmdate('H:i:s', $r['total_time']) }}</p>
+                {{-- FOTOS (8/12) — thumbnails grid --}}
+                <section class="col-span-8" wire:ignore>
+                    <h3 class="font-display font-bold text-sm text-white/60 uppercase tracking-wider mb-2 drop-shadow">
+                        Fotos
+                    </h3>
+                    <div class="flex gap-2 overflow-x-auto scrollbar-thin pb-1"
+                         x-ref="photoStrip">
+                        <template x-for="(photo, idx) in photos" :key="photo.id">
+                            <div class="shrink-0 cursor-pointer transition-transform duration-200 hover:scale-105"
+                                 @@click="openPhotoModal(idx)">
+                                <img :src="photo.photo_url"
+                                     :alt="'Foto de ' + photo.team_name"
+                                     class="h-20 w-20 object-cover rounded-xl ring-1 ring-white/10">
+                                <p class="text-[10px] font-mono text-white/50 mt-1 truncate w-20"
+                                   :style="'color:' + photo.team_color"
+                                   x-text="photo.team_name"></p>
                             </div>
-                            <span class="font-display font-extrabold text-3xl text-ignite tabular-nums">{{ $r['total_score'] }}</span>
-                        </li>
-                    @empty
-                        <li class="text-chalk">Nenhuma equipe ativa</li>
-                    @endforelse
-                </ol>
-            </section>
+                        </template>
+                        <div x-show="photos.length === 0"
+                             class="h-20 w-40 flex items-center justify-center text-white/30 text-xs rounded-xl border border-dashed border-white/10">
+                            Aguardando fotos...
+                        </div>
+                    </div>
+                </section>
 
-            {{-- COL 2: PROGRESSO (9/12) — sem nomes, só barras --}}
-            <section class="col-span-9 flex flex-col min-h-0">
-                <h2 class="font-display font-bold text-xl text-ignite mb-3 uppercase tracking-wider text-sm">Progresso</h2>
-                <div class="flex-1 grid grid-cols-3 gap-3 content-start overflow-y-auto scrollbar-thin pr-1">
-                    @forelse ($this->progress as $proof)
-                        @foreach ($proof['stages'] as $st)
-                            @php
-                                $pct = $st['total'] > 0 ? round(($st['completed_count'] / $st['total']) * 100) : 0;
-                                $isAnyActive = $st['active_count'] > 0;
-                            @endphp
-                            <div class="bg-white/[0.03] rounded-card px-3 py-3 {{ $isAnyActive ? 'ring-1 ring-ignite/40 pulse-glow' : '' }}">
-                                <span class="font-display font-bold text-2xl text-ignite tabular-nums">{{ $st['completed_count'] }}/{{ $st['total'] }}</span>
-                                <div class="w-full h-2 bg-white/10 rounded-full mt-2 overflow-hidden">
-                                    <div class="bar-fill h-full bg-ignite rounded-full" style="width:{{ $pct }}%"></div>
+                {{-- AUDIO (4/12) --}}
+                <section class="col-span-4" wire:ignore>
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-display font-bold text-sm text-white/60 uppercase tracking-wider drop-shadow">
+                            Audio
+                        </h3>
+                        <span class="text-xs font-mono text-white/40" x-text="audios.length + ' na fila'"></span>
+                    </div>
+                    <div class="backdrop-blur-md bg-black/40 rounded-xl p-3">
+                        <div x-show="audios.length > 0" class="mb-2 text-sm">
+                            <p class="font-mono text-white/80 truncate">
+                                <span class="text-green-400 mr-1">&#9654;</span>
+                                <span x-text="audios[audioIndex]?.team_name ?? ''"></span>
+                            </p>
+                            <p class="text-xs text-white/40 truncate" x-text="audios[audioIndex]?.stage_name ?? ''"></p>
+                        </div>
+                        <audio x-ref="audioPlayer" @@ended="playNextAudio()" class="hidden" controls></audio>
+                        <div class="max-h-24 overflow-y-auto scrollbar-thin space-y-1 text-xs font-mono">
+                            <template x-for="(a, idx) in audios" :key="a.id">
+                                <div class="flex items-center gap-2 px-2 py-1 rounded cursor-pointer transition-colors"
+                                     :class="idx === audioIndex ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80'"
+                                     @@click="playAudio(idx)">
+                                    <span x-text="idx === audioIndex ? '&#9654;' : '&#9834;'"></span>
+                                    <span class="truncate flex-1" x-text="a.team_name"></span>
+                                    <span class="text-[10px] text-white/30" x-text="a.duration_seconds + 's'"></span>
                                 </div>
-                            </div>
-                        @endforeach
-                    @empty
-                        <p class="text-chalk">Nenhuma prova cadastrada</p>
-                    @endforelse
-                </div>
-            </section>
-        </div>
-
-        {{-- ======== BOTTOM BAR: Carrossel + Audio (wire:ignore sections) ======== --}}
-        <div class="grid grid-cols-12 gap-4 border-t border-white/10 pt-3 min-h-[180px] max-h-[220px] shrink-0">
-
-            {{-- Carrossel de Fotos (8/12) --}}
-            <section class="col-span-8 flex flex-col" wire:ignore>
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="font-display font-bold text-sm text-ignite uppercase tracking-wider">Fotos</h3>
-                    <div class="flex gap-1">
-                        <template x-for="(_, idx) in photos" :key="idx">
-                            <button
-                                class="w-2 h-2 rounded-full transition-colors duration-300"
-                                :class="idx === photoIndex ? 'bg-ignite' : 'bg-white/20'"
-                                @@click="photoIndex = idx; pauseCarousel()"
-                            ></button>
-                        </template>
-                    </div>
-                </div>
-                <div class="flex-1 relative bg-white/[0.02] rounded-card overflow-hidden">
-                    <template x-for="(photo, idx) in photos" :key="photo.id">
-                        <div
-                            x-show="idx === photoIndex"
-                            x-transition:enter="transition-opacity duration-800"
-                            class="absolute inset-0 flex items-center justify-center"
-                        >
-                            <img :src="photo.photo_url" :alt="'Foto de ' + photo.team_name" class="max-h-full max-w-full object-contain rounded-lg">
-                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-ink/80 to-transparent px-3 py-2">
-                                <span class="text-xs font-mono" :style="'color:' + photo.team_color" x-text="photo.team_name"></span>
-                                <span class="text-[10px] text-chalk ml-2 font-mono" x-text="photo.sent_at ? new Date(photo.sent_at).toLocaleTimeString('pt-BR') : ''"></span>
+                            </template>
+                            <div x-show="audios.length === 0" class="text-white/30 text-center py-4">
+                                Aguardando audios...
                             </div>
                         </div>
-                    </template>
-                    <div x-show="photos.length === 0" class="absolute inset-0 flex items-center justify-center text-chalk text-xs">
-                        Aguardando fotos...
                     </div>
-                </div>
-            </section>
-
-            {{-- Player de Audio (4/12) --}}
-            <section class="col-span-4 flex flex-col" wire:ignore>
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="font-display font-bold text-sm text-ignite uppercase tracking-wider">Audio</h3>
-                    <span class="text-[10px] font-mono text-chalk" x-text="audios.length + ' na fila'"></span>
-                </div>
-                <div class="flex-1 bg-white/[0.02] rounded-card p-3 flex flex-col">
-                    <div x-show="audios.length > 0" class="mb-2">
-                        <p class="text-[11px] font-mono text-chalk truncate">
-                            <span class="text-green-400">&#9654;</span>
-                            <span x-text="audios[audioIndex]?.team_name ?? ''"></span>
-                        </p>
-                        <p class="text-xs truncate" x-text="audios[audioIndex]?.stage_name ?? ''"></p>
-                    </div>
-                    <audio x-ref="audioPlayer" @@ended="playNextAudio()" class="hidden" controls></audio>
-                    <div class="flex-1 overflow-y-auto scrollbar-thin space-y-1 text-[11px] font-mono">
-                        <template x-for="(a, idx) in audios" :key="a.id">
-                            <div
-                                class="flex items-center gap-2 px-1 py-0.5 rounded cursor-pointer"
-                                :class="idx === audioIndex ? 'bg-ignite/10 text-ignite' : 'text-chalk hover:text-paper'"
-                                @@click="playAudio(idx)"
-                            >
-                                <span x-text="idx === audioIndex ? '&#9654;' : '&#9834;'"></span>
-                                <span class="truncate flex-1" x-text="a.team_name"></span>
-                                <span class="text-[9px]" x-text="a.duration_seconds + 's'"></span>
-                            </div>
-                        </template>
-                        <div x-show="audios.length === 0" class="text-chalk text-center pt-4">
-                            Aguardando audios...
-                        </div>
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </div>
 
-        {{-- Footer --}}
-        <footer class="text-center text-chalk text-[10px] font-mono border-t border-white/5 pt-2 shrink-0">
-            Helena Quest &middot; atualizado em {{ now()->format('H:i:s') }}
-        </footer>
+        {{-- MODAL DE FOTO (tela inteira, 10s) --}}
+        <template x-teleport="body">
+            <div x-show="modalPhoto !== null"
+                 x-transition:enter="transition-opacity duration-300"
+                 x-transition:leave="transition-opacity duration-300"
+                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+                 @@click="closePhotoModal()">
+                <template x-if="modalPhoto !== null">
+                    <img :src="photos[modalPhoto]?.photo_url"
+                         :alt="'Foto de ' + photos[modalPhoto]?.team_name"
+                         class="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl">
+                </template>
+                <p class="absolute bottom-6 left-0 right-0 text-center text-white/60 text-sm font-mono drop-shadow"
+                   x-text="(photos[modalPhoto]?.team_name ?? '') + ' — ' + (photos[modalPhoto]?.sent_at ? new Date(photos[modalPhoto].sent_at).toLocaleTimeString('pt-BR') : '')">
+                </p>
+            </div>
+        </template>
+
+        {{-- LEGENDA OPENSTREETMAP --}}
+        <div class="absolute bottom-1 left-2 z-10 text-[9px] text-white/20 font-mono pointer-events-none">
+            &copy; OpenStreetMap contributors
+        </div>
     </div>
 </div>
 
 <script>
-    function     telaoData() {
+    function telaoData() {
         return {
             photos: [],
             photoIndex: 0,
             carouselTimer: null,
+            modalPhoto: null,
+            modalTimer: null,
 
             audios: [],
             audioIndex: 0,
@@ -180,6 +162,7 @@
             map: null,
             mapMarkers: [],
             mapInitialized: false,
+            schoolMarker: null,
 
             initTelao() {
                 this.startClock();
@@ -204,19 +187,38 @@
                     this.map = L.map(el, {
                         zoom: 15,
                         center: [-21.996, -47.426],
-                        zoomControl: true,
+                        zoomControl: false,
                         attributionControl: false,
                     });
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
-                        attribution: '&copy; OpenStreetMap',
                     }).addTo(this.map);
                     if (fallback) fallback.style.display = 'none';
                     this.mapInitialized = true;
+                    this.loadSchoolMarker();
                     this.loadMapLocations();
                 } catch (e) {
                     if (fallback) fallback.textContent = 'Erro ao carregar mapa: ' + e.message;
                 }
+            },
+
+            loadSchoolMarker() {
+                if (!this.mapInitialized || !this.$wire) return;
+                this.$wire.get('schoolLocation').then(function(school) {
+                    if (this.schoolMarker) { this.map.removeLayer(this.schoolMarker); }
+                    if (!school) return;
+                    var icon = L.divIcon({
+                        className: 'school-pin',
+                        html: '<div style="width:32px;height:32px;background:#FF6600;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);">' +
+                            (school.logo ? '<img src="' + school.logo + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">' : '<span style="color:#fff;font-weight:bold;font-size:14px;">E</span>') +
+                            '</div>',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16],
+                    });
+                    this.schoolMarker = L.marker([school.lat, school.lng], { icon: icon })
+                        .addTo(this.map)
+                        .bindTooltip(school.name, { permanent: false, direction: 'top' });
+                }.bind(this));
             },
 
             loadMapLocations() {
@@ -229,18 +231,21 @@
             updateMapMarkers(locations) {
                 this.mapMarkers.forEach(function(m) { this.map.removeLayer(m); }.bind(this));
                 this.mapMarkers = [];
-                if (!locations || !locations.length) {
-                    var m = L.circleMarker([-21.996, -47.426], {
-                        radius: 14, color: '#fff', fillColor: '#FF6600', fillOpacity: 1, weight: 2,
-                    }).addTo(this.map).bindTooltip('Colegio Helena', { permanent: false });
-                    this.mapMarkers.push(m);
-                    return;
-                }
                 locations.forEach(function(loc) {
                     if (loc.lat == null || loc.lng == null) return;
-                    var m = L.circleMarker([loc.lat, loc.lng], {
-                        radius: 14, color: '#fff', fillColor: loc.team_color, fillOpacity: 1, weight: 2,
-                    }).addTo(this.map).bindTooltip(loc.team_name, { permanent: false });
+                    var crest = loc.crest_url;
+                    var html = crest
+                        ? '<img src="' + crest + '" style="width:40px;height:40px;border-radius:50%;border:3px solid ' + loc.team_color + ';object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,.5);">'
+                        : '<div style="width:40px;height:40px;border-radius:50%;background:' + loc.team_color + ';border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5);"></div>';
+                    var icon = L.divIcon({
+                        className: 'team-marker',
+                        html: html,
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 20],
+                    });
+                    var m = L.marker([loc.lat, loc.lng], { icon: icon })
+                        .addTo(this.map)
+                        .bindTooltip(loc.team_name, { permanent: false, direction: 'top' });
                     this.mapMarkers.push(m);
                 }.bind(this));
             },
@@ -264,9 +269,17 @@
             stopCarousel() {
                 if (this.carouselTimer) { clearInterval(this.carouselTimer); this.carouselTimer = null; }
             },
-            pauseCarousel() {
+
+            openPhotoModal(idx) {
+                this.modalPhoto = idx;
+                if (this.modalTimer) clearTimeout(this.modalTimer);
+                this.modalTimer = setTimeout(() => { this.closePhotoModal(); }, 10000);
                 this.stopCarousel();
-                setTimeout(() => { this.startCarousel(); }, 12000);
+            },
+            closePhotoModal() {
+                this.modalPhoto = null;
+                if (this.modalTimer) { clearTimeout(this.modalTimer); this.modalTimer = null; }
+                this.startCarousel();
             },
 
             playAudio(idx) {
