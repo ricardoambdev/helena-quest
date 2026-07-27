@@ -6,6 +6,7 @@ namespace App\Livewire;
 
 use App\Models\Audio;
 use App\Models\Competition;
+use App\Models\SystemPreference;
 use App\Models\TeamProgress;
 use App\Models\TeamStageProgress;
 use Livewire\Attributes\Computed;
@@ -102,13 +103,15 @@ class Telao extends Component
     #[Computed]
     public function schoolLocation(): ?array
     {
-        $comp = $this->competition;
-        if ($comp->school_latitude && $comp->school_longitude) {
+        $lat = SystemPreference::getValue('school_latitude');
+        $lng = SystemPreference::getValue('school_longitude');
+        if ($lat && $lng) {
+            $logoPath = SystemPreference::getValue('school_logo_path');
             return [
-                'lat' => (float) $comp->school_latitude,
-                'lng' => (float) $comp->school_longitude,
-                'name' => $comp->school_name ?? 'Escola',
-                'logo' => $comp->school_logo_path ? \Storage::url($comp->school_logo_path) : null,
+                'lat' => (float) $lat,
+                'lng' => (float) $lng,
+                'name' => SystemPreference::getValue('school_name', 'Escola'),
+                'logo' => $logoPath ? \Storage::url($logoPath) : null,
             ];
         }
         return null;

@@ -23,7 +23,7 @@
         </div>
 
         {{-- OVERLAY: PLACAR (canto direito) --}}
-        <div class="absolute top-20 right-4 z-10 w-72 space-y-3">
+        <div class="absolute top-20 right-4 z-10 w-80 space-y-3">
             @forelse ($this->ranking as $i => $r)
                 <div class="backdrop-blur-md bg-black/50 rounded-2xl border border-white/10 px-5 py-4 shadow-2xl"
                      style="border-left: 4px solid {{ $r['color_hex'] }};">
@@ -40,9 +40,21 @@
                             {{ $r['total_score'] }}
                         </span>
                     </div>
-                    <div class="flex gap-4 text-white/40 text-xs font-mono">
-                        <span>{{ $r['total_stages'] }} etapas</span>
-                        <span>{{ gmdate('H:i:s', $r['total_time']) }}</span>
+                    <div class="flex items-center justify-between text-white/40 text-xs font-mono">
+                        <div class="flex gap-4">
+                            <span>{{ $r['total_stages'] }} etapas</span>
+                            <span>{{ gmdate('H:i:s', $r['total_time']) }}</span>
+                        </div>
+                        <button type="button"
+                                @@click="centerOnTeam({{ $r['id'] }})"
+                                class="flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-150 hover:bg-white/10 text-white/50 hover:text-white"
+                                title="Centralizar no mapa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span class="text-[10px]">Mapa</span>
+                        </button>
                     </div>
                 </div>
             @empty
@@ -160,7 +172,7 @@
             echo: null,
 
             map: null,
-            mapMarkers: [],
+            mapMarkers: {},
             mapInitialized: false,
             schoolMarker: null,
 
@@ -229,8 +241,8 @@
             },
 
             updateMapMarkers(locations) {
-                this.mapMarkers.forEach(function(m) { this.map.removeLayer(m); }.bind(this));
-                this.mapMarkers = [];
+                Object.values(this.mapMarkers).forEach(function(m) { this.map.removeLayer(m); }.bind(this));
+                this.mapMarkers = {};
                 locations.forEach(function(loc) {
                     if (loc.lat == null || loc.lng == null) return;
                     var crest = loc.crest_url;
@@ -246,8 +258,15 @@
                     var m = L.marker([loc.lat, loc.lng], { icon: icon })
                         .addTo(this.map)
                         .bindTooltip(loc.team_name, { permanent: false, direction: 'top' });
-                    this.mapMarkers.push(m);
+                    this.mapMarkers[loc.team_id] = m;
                 }.bind(this));
+            },
+
+            centerOnTeam(teamId) {
+                var m = this.mapMarkers[teamId];
+                if (m) {
+                    this.map.setView(m.getLatLng(), this.map.getZoom(), { animate: true });
+                }
             },
 
             startClock() {

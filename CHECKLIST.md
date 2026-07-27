@@ -349,3 +349,5 @@
 | 2026-07-27 | 6.7 | Admin Dashboard/StageIndex corrigidos (Proof removido); ProofForm/ProofIndex/ProofReport/FinalEnigmaForm refatorados |
 | 2026-07-27 | 6.7 | Admin Completo: Proof removido, CompetitionForm usa stages, StageForm competition_id+stage_type, FinalEnigma usa cofres, blades atualizados |
 | 2026-07-27 | 6.7 | Tests atualizados: StageFactory (competition_id+stage_type), BonusOnusFactory criada, CompetitionSeeder sem Proof/FinalEnigma, GameEngineTest (21 tests) e StageApiTest (9 tests) — 32/32 passando ✅ |
+| 2026-07-27 | 6.5 | System Preferences criada: tabela `system_preferences`, Model `SystemPreference` (getValue/setValue), Settings page reescrita com formulário escola + telão, upload logo, lat/lng, zoom, refresh |
+| 2026-07-27 | 3.2 | Telão placar: botão pin por equipe centraliza mapa no marker via `centerOnTeam()` Alpine; markers armazenados em dict keyed por team_id |
