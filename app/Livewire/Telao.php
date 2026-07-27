@@ -105,16 +105,29 @@ class Telao extends Component
     {
         $lat = SystemPreference::getValue('school_latitude');
         $lng = SystemPreference::getValue('school_longitude');
-        if ($lat && $lng) {
-            $logoPath = SystemPreference::getValue('school_logo_path');
-            return [
-                'lat' => (float) $lat,
-                'lng' => (float) $lng,
-                'name' => SystemPreference::getValue('school_name', 'Escola'),
-                'logo' => $logoPath ? \Storage::url($logoPath) : null,
-            ];
+
+        if (!$lat || !$lng) {
+            $comp = $this->competition;
+            if ($comp->school_latitude && $comp->school_longitude) {
+                $lat = $comp->school_latitude;
+                $lng = $comp->school_longitude;
+                return [
+                    'lat' => (float) $lat,
+                    'lng' => (float) $lng,
+                    'name' => $comp->school_name ?? 'Escola',
+                    'logo' => $comp->school_logo_path ? \Storage::url($comp->school_logo_path) : null,
+                ];
+            }
+            return null;
         }
-        return null;
+
+        $logoPath = SystemPreference::getValue('school_logo_path');
+        return [
+            'lat' => (float) $lat,
+            'lng' => (float) $lng,
+            'name' => SystemPreference::getValue('school_name', 'Escola'),
+            'logo' => $logoPath ? \Storage::url($logoPath) : null,
+        ];
     }
 
     #[Computed]

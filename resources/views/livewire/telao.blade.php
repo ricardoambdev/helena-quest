@@ -1,6 +1,6 @@
 <div wire:poll.3s class="relative h-screen w-full overflow-hidden bg-[#1a1d23] font-display">
     <div
-        x-data="telaoData()"
+        x-data="telaoData({{ json_encode($this->schoolLocation) }})"
         x-init="initTelao()"
         wire:ignore.self
         class="absolute inset-0"
@@ -155,8 +155,9 @@
 </div>
 
 <script>
-    function telaoData() {
+    function telaoData(schoolData) {
         return {
+            schoolData: schoolData,
             photos: [],
             photoIndex: 0,
             carouselTimer: null,
@@ -215,22 +216,21 @@
             },
 
             loadSchoolMarker() {
-                if (!this.mapInitialized || !this.$wire) return;
-                this.$wire.get('schoolLocation').then(function(school) {
-                    if (this.schoolMarker) { this.map.removeLayer(this.schoolMarker); }
-                    if (!school) return;
-                    var icon = L.divIcon({
-                        className: 'school-pin',
-                        html: '<div style="width:32px;height:32px;background:#FF6600;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);">' +
-                            (school.logo ? '<img src="' + school.logo + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">' : '<span style="color:#fff;font-weight:bold;font-size:14px;">E</span>') +
-                            '</div>',
-                        iconSize: [32, 32],
-                        iconAnchor: [16, 16],
-                    });
-                    this.schoolMarker = L.marker([school.lat, school.lng], { icon: icon })
-                        .addTo(this.map)
-                        .bindTooltip(school.name, { permanent: false, direction: 'top' });
-                }.bind(this));
+                if (!this.mapInitialized) return;
+                if (this.schoolMarker) { this.map.removeLayer(this.schoolMarker); this.schoolMarker = null; }
+                const school = this.schoolData;
+                if (!school || !school.lat || !school.lng) return;
+                var icon = L.divIcon({
+                    className: 'school-pin',
+                    html: '<div style="width:32px;height:32px;background:#FF6600;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);">' +
+                        (school.logo ? '<img src="' + school.logo + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">' : '<span style="color:#fff;font-weight:bold;font-size:14px;">E</span>') +
+                        '</div>',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                });
+                this.schoolMarker = L.marker([school.lat, school.lng], { icon: icon })
+                    .addTo(this.map)
+                    .bindTooltip(school.name, { permanent: false, direction: 'top' });
             },
 
             loadMapLocations() {
