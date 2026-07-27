@@ -63,21 +63,19 @@
             <section class="col-span-9 flex flex-col min-h-0">
                 <h2 class="font-display font-bold text-xl text-ignite mb-3 uppercase tracking-wider text-sm">Progresso</h2>
                 <div class="flex-1 grid grid-cols-3 gap-3 content-start overflow-y-auto scrollbar-thin pr-1">
-                    @forelse ($this->progress as $proof)
-                        @foreach ($proof['stages'] as $st)
-                            @php
-                                $pct = $st['total'] > 0 ? round(($st['completed_count'] / $st['total']) * 100) : 0;
-                                $isAnyActive = $st['active_count'] > 0;
-                            @endphp
-                            <div class="bg-white/[0.03] rounded-card px-3 py-3 {{ $isAnyActive ? 'ring-1 ring-ignite/40 pulse-glow' : '' }}">
-                                <span class="font-display font-bold text-2xl text-ignite tabular-nums">{{ $st['completed_count'] }}/{{ $st['total'] }}</span>
-                                <div class="w-full h-2 bg-white/10 rounded-full mt-2 overflow-hidden">
-                                    <div class="bar-fill h-full bg-ignite rounded-full" style="width:{{ $pct }}%"></div>
-                                </div>
+                    @forelse ($this->progress as $st)
+                        @php
+                            $pct = $st['total'] > 0 ? round(($st['completed_count'] / $st['total']) * 100) : 0;
+                            $isAnyActive = $st['active_count'] > 0;
+                        @endphp
+                        <div class="bg-white/[0.03] rounded-card px-3 py-3 {{ $isAnyActive ? 'ring-1 ring-ignite/40 pulse-glow' : '' }}">
+                            <span class="font-display font-bold text-2xl text-ignite tabular-nums">{{ $st['completed_count'] }}/{{ $st['total'] }}</span>
+                            <div class="w-full h-2 bg-white/10 rounded-full mt-2 overflow-hidden">
+                                <div class="bar-fill h-full bg-ignite rounded-full" style="width:{{ $pct }}%"></div>
                             </div>
-                        @endforeach
+                        </div>
                     @empty
-                        <p class="text-chalk">Nenhuma prova cadastrada</p>
+                        <p class="text-chalk">Nenhuma etapa cadastrada</p>
                     @endforelse
                 </div>
             </section>
