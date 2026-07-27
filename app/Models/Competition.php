@@ -28,6 +28,11 @@ class Competition extends Model
         'admin_notes',
         'started_at',
         'finished_at',
+        'school_name',
+        'school_address',
+        'school_latitude',
+        'school_longitude',
+        'school_logo_path',
         'created_by',
         'updated_by',
     ];
@@ -41,19 +46,14 @@ class Competition extends Model
         'year' => 'integer',
     ];
 
-    public function proofs(): HasMany
+    public function stages(): HasMany
     {
-        return $this->hasMany(Proof::class);
+        return $this->hasMany(Stage::class)->orderBy('order');
     }
 
     public function teams(): HasMany
     {
         return $this->hasMany(Team::class);
-    }
-
-    public function finalEnigmas(): HasMany
-    {
-        return $this->hasMany(FinalEnigma::class);
     }
 
     public function createdBy(): BelongsTo

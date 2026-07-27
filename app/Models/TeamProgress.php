@@ -16,7 +16,7 @@ class TeamProgress extends Model
 
     protected $fillable = [
         'team_id',
-        'proof_id',
+        'competition_id',
         'current_stage_id',
         'total_score',
         'total_time_seconds',
@@ -26,11 +26,13 @@ class TeamProgress extends Model
         'photos_count',
         'audios_count',
         'hints_bought',
+        'bonus_onus_ids',
         'started_at',
         'completed_at',
     ];
 
     protected $casts = [
+        'bonus_onus_ids' => 'array',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
@@ -40,9 +42,9 @@ class TeamProgress extends Model
         return $this->belongsTo(Team::class);
     }
 
-    public function proof(): BelongsTo
+    public function competition(): BelongsTo
     {
-        return $this->belongsTo(Proof::class);
+        return $this->belongsTo(Competition::class);
     }
 
     public function currentStage(): BelongsTo

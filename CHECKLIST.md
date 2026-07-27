@@ -261,6 +261,20 @@
 - [x] Página de Configurações (Livewire + rota /admin/settings)
 - [x] Sidebar redesenhada: cor #171A21 (slate escuro), menu minimalista, link Configurações, logout harmonioso
 
+### 6.7 Restruturação ALTERACOES
+- [x] Migration `complete_restructure` — drop proofs/final_enigmas, add stage_type/bonus_onus/war_cry/school
+- [x] Migration `add_competition_id_to_team_progress`
+- [x] Models: BonusOnus, TeamBonusOnus criados; Proof/FinalEnigma removidos
+- [x] GameEngine rewrite: sem Proof, scoring 50+30, unlock, bonus/onus, word guess
+- [x] StageController: stage_type-aware, unlock, scanBonusOnus
+- [x] FinalEnigmaController: cofres em vez de letras
+- [x] Telao: stages em vez de proofs, enigmaFinalStatus por stage_type
+- [x] Flutter: HomeScreen, StageScreen, CompassScreen, FinalEnigmaScreen atualizados
+- [x] Admin Dashboard/StageIndex corrigidos
+- [~] Admin: refatorar ProofForm/Index/Report, FinalEnigmaForm, CompetitionReport, blades
+- [ ] Admin: StageForm atualizar para competition_id e stage_type
+- [ ] Tests: atualizar GameEngine/API tests para novo schema
+
 ### 6.6 Deploy
 - [ ] Configurar Laravel Forge / Vapor
 - [ ] Configurar domínio + SSL
@@ -322,3 +336,9 @@
 | 2026-07-26 | 6.5 | Limite de equipes configurável: max_teams na competição (default 2), validação no TeamForm, campo na tela de configuração |
 | 2026-07-26 | 6.6 | Usuário root, migration role root, Settings page, sidebar redesenhada (cor #171A21, menu minimalista, link config, logout harmonioso) |
 | 2026-07-26 | 3.2 | Telão reformulado: mapa Google Maps full-width no topo (38% altura) + grid ranking/progresso; progresso sem nomes em grid 3 colunas |
+| 2026-07-27 | 6.7 | **ALTERACOES.md restructure**: GameEngine reescrito sem Proof/FinalEnigma; novo scoring 50+30; bonus/onus QR; competition_id em TeamProgress; migration complete_restructure rodada |
+| 2026-07-27 | 6.7 | Models BonusOnus/TeamBonusOnus criados; Proof/FinalEnigma/TeamFinalEnigmaAttempt/TeamFinalEnigmaLetter removidos |
+| 2026-07-27 | 6.7 | Flutter: HomeScreen, StageScreen, CompassScreen, FinalEnigmaScreen, ProfileScreen todos atualizados para novo schema |
+| 2026-07-27 | 6.7 | Telão atualizado sem Proof: stages direto da Competition; enigmaFinalStatus por stage_type |
+| 2026-07-27 | 6.7 | API routes: unlock, scanBonusOnus, final-enigma/validate-cofre adicionados |
+| 2026-07-27 | 6.7 | Admin Dashboard/StageIndex corrigidos (Proof removido); ProofForm/ProofIndex/ProofReport/FinalEnigmaForm pendentes refatoração |

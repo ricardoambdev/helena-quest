@@ -10,6 +10,7 @@ class StageProvider extends ChangeNotifier {
   Map<String, dynamic>? _currentStage;
   Map<String, dynamic>? _currentProgress;
   List<Map<String, dynamic>> _hints = [];
+  final List<Map<String, dynamic>> _bonusOnusList = [];
   String? _error;
   bool _loading = false;
 
@@ -18,6 +19,7 @@ class StageProvider extends ChangeNotifier {
   Map<String, dynamic>? get currentStage => _currentStage;
   Map<String, dynamic>? get currentProgress => _currentProgress;
   List<Map<String, dynamic>> get hints => _hints;
+  List<Map<String, dynamic>> get bonusOnusList => _bonusOnusList;
   String? get error => _error;
   bool get loading => _loading;
 
@@ -58,6 +60,40 @@ class StageProvider extends ChangeNotifier {
         if (lng != null) 'longitude': lng,
       });
       _currentProgress = data['progress'] as Map<String, dynamic>?;
+      notifyListeners();
+      return data;
+    } on ApiException catch (e) {
+      _error = e.message;
+      notifyListeners();
+      return {'success': false, 'message': e.message};
+    }
+  }
+
+  Future<Map<String, dynamic>> unlockWithCode(String stageId, String code) async {
+    _error = null;
+    try {
+      final data = await _api.post('/stages/$stageId/unlock', body: {
+        'code': code,
+      });
+      _currentProgress = data['progress'] as Map<String, dynamic>?;
+      notifyListeners();
+      return data;
+    } on ApiException catch (e) {
+      _error = e.message;
+      notifyListeners();
+      return {'success': false, 'message': e.message};
+    }
+  }
+
+  Future<Map<String, dynamic>> scanBonusOnus(String bonusUuid) async {
+    _error = null;
+    try {
+      final data = await _api.post('/bonus-onus/scan', body: {
+        'uuid': bonusUuid,
+      });
+      if (data['bonus_onus'] != null) {
+        _bonusOnusList.add(data['bonus_onus'] as Map<String, dynamic>);
+      }
       notifyListeners();
       return data;
     } on ApiException catch (e) {

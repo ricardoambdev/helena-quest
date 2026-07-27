@@ -25,29 +25,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _loading = true);
-
     final auth = context.read<AuthProvider>();
     final ok = await auth.login(
       _usernameController.text.trim(),
       _passwordController.text,
     );
-
     if (!mounted) return;
     setState(() => _loading = false);
-
-    if (ok) {
-      Navigator.pushReplacementNamed(context, '/home');
-    }
+    if (ok) Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-
     return Scaffold(
-      backgroundColor: AppTheme.paper,
+      backgroundColor: AppTheme.ink,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -58,11 +51,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Helena Quest',
+                    'HELENA',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w800,
+                      fontFamily: 'Inter', fontWeight: FontWeight.w800,
                       color: AppTheme.ignite,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'QUEST',
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                      fontFamily: 'Inter', fontWeight: FontWeight.w800,
+                      color: AppTheme.paper,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -74,17 +74,39 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 40),
+
+                  Card(
+                    color: AppTheme.paper.withValues(alpha: 0.05),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Icon(Icons.mail_outline, color: AppTheme.ignite, size: 28),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Use o usuario e senha fornecidos no envelope lacrado.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppTheme.chalk,
+                              fontFamily: 'Nunito',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
                   TextFormField(
                     controller: _usernameController,
                     decoration: const InputDecoration(
-                      labelText: 'Usuário',
+                      labelText: 'Usuario',
                       prefixIcon: Icon(Icons.person_outline),
+                      fillColor: Color(0xFF2A2D35),
                     ),
-                    style: const TextStyle(fontFamily: 'Nunito'),
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? 'Informe o usuário' : null,
+                    style: const TextStyle(fontFamily: 'Nunito', color: Colors.white),
+                    validator: (v) => v == null || v.trim().isEmpty ? 'Informe o usuario' : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -94,49 +116,31 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Senha',
                       prefixIcon: Icon(Icons.lock_outline),
+                      fillColor: Color(0xFF2A2D35),
                     ),
-                    style: const TextStyle(fontFamily: 'Nunito'),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Informe a senha' : null,
+                    style: const TextStyle(fontFamily: 'Nunito', color: Colors.white),
+                    validator: (v) => v == null || v.isEmpty ? 'Informe a senha' : null,
                   ),
                   const SizedBox(height: 8),
 
                   if (auth.error != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        auth.error!,
-                        style: const TextStyle(
-                          color: AppTheme.error,
-                          fontSize: 13,
-                          fontFamily: 'Nunito',
-                        ),
-                      ),
+                      child: Text(auth.error!,
+                        style: const TextStyle(color: AppTheme.error, fontSize: 13)),
                     ),
 
                   const SizedBox(height: 16),
-
                   SizedBox(
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton(
                       onPressed: _loading ? null : _submit,
                       child: _loading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              'ENTRAR',
-                              style: TextStyle(
-                                fontFamily: 'JetBrains Mono',
-                                fontSize: 15,
-                              ),
-                            ),
+                          ? const SizedBox(width: 22, height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                          : const Text('ENTRAR',
+                              style: TextStyle(fontFamily: 'JetBrains Mono', fontSize: 15)),
                     ),
                   ),
                 ],

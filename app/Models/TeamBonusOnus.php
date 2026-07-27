@@ -8,22 +8,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class TeamFinalEnigmaAttempt extends Model
+class TeamBonusOnus extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'team_id',
-        'final_enigma_id',
-        'attempt_number',
-        'guessed_word',
-        'correct',
-        'next_available_at',
+        'bonus_onus_id',
+        'status',
+        'score_earned',
+        'completed_at',
     ];
 
     protected $casts = [
-        'correct' => 'boolean',
-        'next_available_at' => 'datetime',
+        'score_earned' => 'integer',
+        'completed_at' => 'datetime',
     ];
 
     public function team(): BelongsTo
@@ -31,8 +30,8 @@ class TeamFinalEnigmaAttempt extends Model
         return $this->belongsTo(Team::class);
     }
 
-    public function finalEnigma(): BelongsTo
+    public function bonusOnus(): BelongsTo
     {
-        return $this->belongsTo(FinalEnigma::class);
+        return $this->belongsTo(BonusOnus::class);
     }
 }

@@ -13,14 +13,9 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | API Routes (Sanctum)
 |--------------------------------------------------------------------------
-|
-| Montadas em /api/* — sem padrão /api/v1/ pois hospedagem compartilhada
-| costuma ter dificuldades com middlewares extras. Versionamento manual
-| caso necessário.
-|
 */
 
-// ========== Autenticação ==========
+// ========== Autenticacao ==========
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::middleware('auth:sanctum')->group(function () {
@@ -36,11 +31,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('stages/{stage}/validate-qr', [StageController::class, 'validateQr']);
     Route::post('stages/{stage}/send-photo', [StageController::class, 'sendPhoto']);
     Route::post('stages/{stage}/answer', [StageController::class, 'answer']);
+    Route::post('stages/{stage}/unlock', [StageController::class, 'unlock']);
     Route::get('stages/{stage}/hints', [StageController::class, 'hints']);
     Route::post('stages/{stage}/buy-hint/{hint}', [StageController::class, 'buyHint']);
 });
 
-// ========== Áudios ==========
+// ========== Bonus/Onus ==========
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('bonus-onus/scan', [StageController::class, 'scanBonusOnus']);
+});
+
+// ========== Audios ==========
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('audios', [AudioController::class, 'upload']);
     Route::get('audios', [AudioController::class, 'index']);
@@ -49,12 +50,12 @@ Route::middleware('auth:sanctum')->group(function () {
 // ========== Enigma Final ==========
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('final-enigma/status', [FinalEnigmaController::class, 'status']);
-    Route::post('final-enigma/validate-letter/{qr}', [FinalEnigmaController::class, 'validateLetter']);
+    Route::post('final-enigma/validate-cofre', [FinalEnigmaController::class, 'validateCofre']);
     Route::post('final-enigma/guess', [FinalEnigmaController::class, 'guess']);
     Route::get('final-enigma/attempts', [FinalEnigmaController::class, 'attempts']);
 });
 
-// ========== PÚBLICO (Telão) ==========
+// ========== Publico (Tela) ==========
 Route::prefix('public')->group(function () {
     Route::get('competition/{id}', [PublicApiController::class, 'competition']);
     Route::get('teams-location/{competitionId}', [PublicApiController::class, 'teamsLocation']);

@@ -15,10 +15,11 @@ class Stage extends Model
     use HasFactory;
 
     protected $fillable = [
-        'proof_id',
+        'competition_id',
         'name',
         'description',
         'order',
+        'stage_type',
         'latitude',
         'longitude',
         'radius',
@@ -31,6 +32,19 @@ class Stage extends Model
         'score',
         'penalty',
         'time_limit_minutes',
+        'sub_questions',
+        'compass_direction',
+        'compass_steps',
+        'compass_landmarks',
+        'treasure_hint',
+        'unlock_password',
+        'unlock_order',
+        'unlock_phrase',
+        'word',
+        'max_attempts',
+        'cooldown_minutes',
+        'word_score',
+        'wrong_word_penalty',
         'admin_notes',
         'created_by',
         'updated_by',
@@ -44,9 +58,15 @@ class Stage extends Model
         'score' => 'integer',
         'penalty' => 'integer',
         'time_limit_minutes' => 'integer',
+        'sub_questions' => 'array',
+        'compass_steps' => 'integer',
+        'max_attempts' => 'integer',
+        'cooldown_minutes' => 'integer',
+        'word_score' => 'integer',
+        'wrong_word_penalty' => 'integer',
     ];
 
-    protected $hidden = ['correct_answer', 'secret_number'];
+    protected $hidden = ['correct_answer', 'secret_number', 'unlock_password', 'word'];
 
     protected static function booted(): void
     {
@@ -57,9 +77,9 @@ class Stage extends Model
         });
     }
 
-    public function proof(): BelongsTo
+    public function competition(): BelongsTo
     {
-        return $this->belongsTo(Proof::class);
+        return $this->belongsTo(Competition::class);
     }
 
     public function hints(): HasMany
@@ -75,6 +95,16 @@ class Stage extends Model
     public function audios(): HasMany
     {
         return $this->hasMany(Audio::class);
+    }
+
+    public function bonusOnus(): HasMany
+    {
+        return $this->hasMany(BonusOnus::class);
+    }
+
+    public function isFinalEnigma(): bool
+    {
+        return $this->stage_type === 'enigma_final';
     }
 
     protected function answerMasked(): Attribute

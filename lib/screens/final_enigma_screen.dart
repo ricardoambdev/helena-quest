@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:helena_quest_app/config/theme.dart';
-import 'package:helena_quest_app/services/api_service.dart';
+import '../config/theme.dart';
+import '../services/api_service.dart';
 
 class FinalEnigmaScreen extends StatefulWidget {
   final ApiService apiService;
@@ -103,11 +103,11 @@ class _FinalEnigmaScreenState extends State<FinalEnigmaScreen> {
     }
   }
 
-  Future<void> _scanLetter() async {
+  Future<void> _scanCofre() async {
     final scanned = await Navigator.pushNamed(context, '/final-enigma/scan');
     if (scanned is String) {
       try {
-        await widget.apiService.post('/final-enigma/validate-letter/$scanned');
+        await widget.apiService.post('/final-enigma/validate-cofre', body: {'uuid': scanned});
         _loadAll();
       } on ApiException catch (e) {
         if (mounted) {
@@ -122,10 +122,10 @@ class _FinalEnigmaScreenState extends State<FinalEnigmaScreen> {
     }
   }
 
-  String _lettersDisplay() {
-    final list = _status?['letters_unlocked'] as List<dynamic>? ?? <dynamic>[];
-    final total = _status?['required_letters_count'] as int? ?? list.length;
-    return list.join(' ').padRight(total * 2 - 1, '_');
+  String _cofreProgress() {
+    final count = _status?['cofres_unlocked'] as int? ?? 0;
+    final total = _status?['required_cofres'] as int? ?? 1;
+    return '$count / $total';
   }
 
   @override
@@ -148,9 +148,9 @@ class _FinalEnigmaScreenState extends State<FinalEnigmaScreen> {
     final solved = (_status?['correct_attempts'] as int? ?? 0) > 0;
     final attemptsMade = _status?['attempts_made'] as int? ?? 0;
     final maxAttempts = _status?['max_attempts'] as int? ?? 3;
-    final lettersCount = (_status?['letters_unlocked'] as List?)?.length ?? 0;
-    final requiredLetters = _status?['required_letters_count'] as int? ?? 0;
-    final allLettersCollected = lettersCount >= requiredLetters;
+    final cofresCount = _status?['cofres_unlocked'] as int? ?? 0;
+    final requiredCofres = _status?['required_cofres'] as int? ?? 1;
+    final allCofresCollected = cofresCount >= requiredCofres;
 
     return Scaffold(
       appBar: AppBar(
@@ -245,38 +245,43 @@ class _FinalEnigmaScreenState extends State<FinalEnigmaScreen> {
                 ),
               ],
               const SizedBox(height: 24),
-              Center(
-                child: Text(
-                  _lettersDisplay(),
-                  style: const TextStyle(
-                    fontFamily: 'JetBrains Mono',
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 6,
-                    color: AppTheme.ink,
-                  ),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppTheme.ignite.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.ignite.withValues(alpha: 0.3)),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '$lettersCount / $requiredLetters letras coletadas',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 13,
-                  color: AppTheme.chalk,
+                child: Column(
+                  children: [
+                    const Icon(Icons.lock, size: 40, color: AppTheme.ignite),
+                    const SizedBox(height: 12),
+                    Text(
+                      'COLETE OS CODIGOS DOS COFRES',
+                      style: const TextStyle(
+                        fontFamily: 'JetBrains Mono', fontSize: 14,
+                        fontWeight: FontWeight.w600, color: AppTheme.ink),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _cofreProgress(),
+                      style: const TextStyle(
+                        fontFamily: 'Inter', fontSize: 36,
+                        fontWeight: FontWeight.w800, color: AppTheme.ignite),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: _scanLetter,
+                  onPressed: _scanCofre,
                   icon: const Icon(Icons.qr_code_scanner, size: 20),
-                  label: const Text('ESCANEAR QR PARA COLETAR LETRA'),
+                  label: const Text('ESCANEAR QR DO COFRE'),
                 ),
               ),
-              if (allLettersCollected) ...[
+              if (allCofresCollected) ...[
                 const SizedBox(height: 24),
                 TextField(
                   controller: _guessController,

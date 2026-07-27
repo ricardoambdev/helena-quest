@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:helena_quest_app/providers/audio_provider.dart';
-import 'package:helena_quest_app/config/theme.dart';
+import '../providers/audio_provider.dart';
+import '../config/theme.dart';
 
 class AudioScreen extends StatefulWidget {
   const AudioScreen({super.key});

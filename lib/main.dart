@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:helena_quest_app/config/theme.dart';
-import 'package:helena_quest_app/config/routes.dart';
-import 'package:helena_quest_app/services/api_service.dart';
-import 'package:helena_quest_app/services/auth_service.dart';
-import 'package:helena_quest_app/services/location_service.dart';
-import 'package:helena_quest_app/services/audio_service.dart';
-import 'package:helena_quest_app/services/tts_service.dart';
-import 'package:helena_quest_app/providers/auth_provider.dart';
-import 'package:helena_quest_app/providers/stage_provider.dart';
-import 'package:helena_quest_app/providers/team_provider.dart';
-import 'package:helena_quest_app/providers/audio_provider.dart';
+import 'config/theme.dart';
+import 'config/routes.dart';
+import 'services/api_service.dart';
+import 'services/auth_service.dart';
+import 'services/location_service.dart';
+import 'services/audio_service.dart';
+import 'services/tts_service.dart';
+import 'providers/auth_provider.dart';
+import 'providers/stage_provider.dart';
+import 'providers/team_provider.dart';
+import 'providers/audio_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

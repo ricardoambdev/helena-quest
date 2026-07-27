@@ -12,6 +12,7 @@ import '../screens/audio_screen.dart';
 import '../screens/map_screen.dart';
 import '../screens/final_enigma_screen.dart';
 import '../screens/final_enigma_scan_screen.dart';
+import '../screens/compass_screen.dart';
 import '../screens/profile_screen.dart';
 
 class AppRoutes {
@@ -26,6 +27,7 @@ class AppRoutes {
   static const String result = '/result';
   static const String audio = '/audio';
   static const String map = '/map';
+  static const String compass = '/compass';
   static const String finalEnigma = '/final-enigma';
   static const String finalEnigmaScan = '/final-enigma/scan';
   static const String profile = '/profile';
@@ -40,6 +42,7 @@ class AppRoutes {
     result: (_) => const ResultScreen(),
     audio: (_) => const AudioScreen(),
     map: (_) => const MapScreen(),
+    compass: (_) => const CompassScreen(),
     finalEnigma: (ctx) => FinalEnigmaScreen(apiService: ctx.read<ApiService>()),
     finalEnigmaScan: (_) => const FinalEnigmaScanScreen(),
     profile: (_) => const ProfileScreen(),

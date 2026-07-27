@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:helena_quest_app/config/theme.dart';
-import 'package:helena_quest_app/providers/auth_provider.dart';
-import 'package:helena_quest_app/providers/team_provider.dart';
+import '../config/theme.dart';
+import '../providers/auth_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,9 +14,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TeamProvider>().loadTeam();
-    });
   }
 
   Future<void> _logout() async {
@@ -53,12 +49,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final team = context.watch<TeamProvider>().team;
-    final authTeam = context.watch<AuthProvider>().team;
-    final data = team ?? authTeam;
+    final data = context.watch<AuthProvider>().team;
 
     final name = data?['name'] as String? ?? '---';
-    final colorHex = data?['color'] as String? ?? '#FF6600';
+    final colorHex = data?['color_hex'] as String? ?? '#FF6600';
     final crest = data?['crest_url'] as String?;
     final competitionName = data?['competition_name'] as String? ?? '---';
     final score = data?['score'] as int? ?? 0;

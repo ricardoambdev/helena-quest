@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\FinalEnigma;
-use App\Models\FinalEnigmaQrCode;
+use App\Models\Stage;
 use App\Models\Team;
-use App\Models\TeamFinalEnigmaLetter;
 use App\Services\AuditService;
 use App\Services\GameEngine;
 use Illuminate\Http\JsonResponse;
@@ -23,69 +21,63 @@ class FinalEnigmaController extends Controller
         /** @var Team $team */
         $team = $request->user();
 
-        $enigma = FinalEnigma::where('competition_id', $team->competition_id)->first();
+        $stage = Stage::where('competition_id', $team->competition_id)
+            ->where('stage_type', 'enigma_final')
+            ->first();
 
-        if (!$enigma) {
+        if (!$stage) {
             return response()->json(['enabled' => false]);
         }
 
-        $attempts = $team->finalEnigmaAttempts()
-            ->where('final_enigma_id', $enigma->id)
-            ->orderByDesc('attempt_number')
-            ->get();
+        $progress = $team->stageProgress()
+            ->where('stage_id', $stage->id)
+            ->first();
 
-        $lastFailed = $attempts->where('correct', false)->first();
-
-        // Letters unlocked by scanned QRs
-        $scannedLetters = TeamFinalEnigmaLetter::where('team_id', $team->id)
-            ->where('final_enigma_id', $enigma->id)
-            ->pluck('letter')
-            ->all();
+        $scannedCofres = $progress?->bonus_onus_ids ?? [];
 
         return response()->json([
             'enabled' => true,
-            'max_attempts' => $enigma->max_attempts,
-            'attempts_made' => $attempts->count(),
-            'correct_attempts' => $attempts->where('correct', true)->count(),
-            'next_available_at' => $lastFailed?->next_available_at?->toIso8601String(),
-            'locked' => $lastFailed && $lastFailed->next_available_at && now()->lt($lastFailed->next_available_at),
-            'letters_unlocked' => $scannedLetters,
-            'required_letters_count' => $enigma->qrCodes->count(),
+            'stage_id' => $stage->id,
+            'stage_name' => $stage->name,
+            'max_attempts' => $stage->max_attempts ?? 5,
+            'attempts_made' => $progress?->attempts_count ?? 0,
+            'correct_attempts' => $progress?->was_correct ? 1 : 0,
+            'locked' => false,
+            'cofres_unlocked' => count($scannedCofres),
+            'required_cofres' => $stage->sub_questions !== null ? count($stage->sub_questions) : 1,
+            'word' => $progress?->status === 'completed' ? $stage->word : null,
         ]);
     }
 
-    public function validateLetter(Request $request, string $qr): JsonResponse
+    public function validateCofre(Request $request): JsonResponse
     {
+        $data = $request->validate([
+            'uuid' => 'required|string|size:36',
+        ]);
+
         /** @var Team $team */
         $team = $request->user();
 
-        $code = FinalEnigmaQrCode::with('finalEnigma')
-            ->where('qr_code_uuid', $qr)
+        $stage = Stage::where('competition_id', $team->competition_id)
+            ->where('stage_type', 'enigma_final')
             ->firstOrFail();
 
-        if ($code->finalEnigma->competition_id !== $team->competition_id) {
-            return response()->json(['success' => false, 'message' => 'QR Code não pertence à sua competição.'], 403);
+        $bonus = \App\Models\BonusOnus::where('stage_id', $stage->id)
+            ->where('qr_code_uuid', $data['uuid'])
+            ->first();
+
+        if (!$bonus) {
+            return response()->json(['success' => false, 'message' => 'Cofre nao encontrado.'], 404);
         }
 
-        TeamFinalEnigmaLetter::insertOrIgnore([
-            'team_id' => $team->id,
-            'final_enigma_id' => $code->final_enigma_id,
-            'final_enigma_qr_code_id' => $code->id,
-            'letter' => $code->letter,
-            'scanned_at' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
+        $result = $this->engine->scanBonusOnus($team, $bonus);
+
+        AuditService::log($team, 'enigma_cofre_scanned', $stage, [
+            'bonus_name' => $bonus->name,
+            'points' => $bonus->points,
         ]);
 
-        AuditService::log($team, 'final_letter_scanned', $code->finalEnigma, [
-            'letter' => $code->letter,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'letter' => $code->letter,
-            'hint_text' => $code->hint_text,
-        ]);
+        return response()->json($result);
     }
 
     public function guess(Request $request): JsonResponse
@@ -97,9 +89,11 @@ class FinalEnigmaController extends Controller
         /** @var Team $team */
         $team = $request->user();
 
-        $enigma = FinalEnigma::where('competition_id', $team->competition_id)->firstOrFail();
+        $stage = Stage::where('competition_id', $team->competition_id)
+            ->where('stage_type', 'enigma_final')
+            ->firstOrFail();
 
-        $result = $this->engine->validateFinalEnigmaGuess($team, $enigma, $data['word']);
+        $result = $this->engine->validateWordGuess($team, $stage, $data['word']);
 
         return response()->json($result);
     }
@@ -109,18 +103,27 @@ class FinalEnigmaController extends Controller
         /** @var Team $team */
         $team = $request->user();
 
-        $attempts = $team->finalEnigmaAttempts()
-            ->orderBy('created_at', 'desc')
-            ->limit(20)
-            ->get()
-            ->map(fn ($a) => [
-                'attempt_number' => $a->attempt_number,
-                'guessed_word' => $a->guessed_word,
-                'correct' => (bool) $a->correct,
-                'cooldown_ends_at' => $a->next_available_at?->toIso8601String(),
-                'created_at' => $a->created_at?->toIso8601String(),
-            ]);
+        $stage = Stage::where('competition_id', $team->competition_id)
+            ->where('stage_type', 'enigma_final')
+            ->firstOrFail();
 
-        return response()->json(['attempts' => $attempts]);
+        $progress = $team->stageProgress()
+            ->where('stage_id', $stage->id)
+            ->first();
+
+        if (!$progress) {
+            return response()->json(['attempts' => []]);
+        }
+
+        return response()->json([
+            'attempts' => [
+                [
+                    'attempt_number' => $progress->attempts_count,
+                    'guessed_word' => $progress->last_answer,
+                    'correct' => (bool) $progress->was_correct,
+                    'created_at' => $progress->updated_at?->toIso8601String(),
+                ],
+            ],
+        ]);
     }
 }

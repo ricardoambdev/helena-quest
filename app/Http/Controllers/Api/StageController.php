@@ -7,7 +7,9 @@ namespace App\Http\Controllers\Api;
 use App\Events\TeamLocationUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Stage;
+use App\Models\BonusOnus;
 use App\Models\Team;
+use App\Models\TeamProgress;
 use App\Services\GameEngine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,25 +25,31 @@ class StageController extends Controller
         /** @var Team $team */
         $team = $request->user();
 
-        $progress = $team->proofProgress()->whereNotNull('current_stage_id')->first();
+        $progress = TeamProgress::where('team_id', $team->id)
+            ->whereNotNull('current_stage_id')
+            ->first();
 
         if (!$progress || !$progress->current_stage_id) {
             return response()->json([
                 'has_stage' => false,
-                'message' => 'Aguarde a organização iniciar a prova.',
+                'message' => 'Aguardando inicio da gincana.',
             ]);
         }
 
-        $stage = Stage::with(['proof', 'hints'])->findOrFail($progress->current_stage_id);
+        $stage = Stage::with('hints')->findOrFail($progress->current_stage_id);
 
         $pivot = $team->stageProgress()->where('stage_id', $stage->id)->first();
 
-        return response()->json([
+        $stageType = $stage->stage_type;
+
+        $response = [
             'has_stage' => true,
             'stage' => [
                 'id' => $stage->id,
                 'name' => $stage->name,
                 'description' => $stage->description,
+                'stage_type' => $stageType,
+                'order' => $stage->order,
                 'latitude' => $stage->latitude,
                 'longitude' => $stage->longitude,
                 'radius' => $stage->radius,
@@ -52,14 +60,22 @@ class StageController extends Controller
                     'price' => $h->price,
                     'already_bought' => (bool) $pivot?->hint_used,
                 ]),
-                'accepts_photo' => in_array($pivot?->status, ['active'], true),
-                'photo_sent' => $pivot?->status === 'photo_sent' || $pivot?->status === 'answered_wrong' || $pivot?->status === 'answered_correct',
+                'requires_photo' => $stageType === 'caca_ao_tesouro',
+                'compass_direction' => $stage->compass_direction,
+                'compass_steps' => $stage->compass_steps,
+                'compass_landmarks' => $stage->compass_landmarks,
+                'sub_questions' => $stage->sub_questions,
                 'accepts_answer' => in_array($pivot?->status, ['active', 'photo_sent', 'answered_wrong'], true),
-                'correct_answer_length' => strlen($stage->correct_answer),
             ],
-            'progress_status' => $pivot?->status,
-            'attempts_count' => $pivot?->attempts_count ?? 0,
-        ]);
+            'progress' => $pivot ? [
+                'status' => $pivot->status,
+                'attempts_count' => $pivot->attempts_count,
+                'hint_used' => $pivot->hint_used,
+                'started_at' => $pivot->started_at?->toIso8601String(),
+            ] : null,
+        ];
+
+        return response()->json($response);
     }
 
     public function validateQr(Request $request, Stage $stage): JsonResponse
@@ -121,20 +137,41 @@ class StageController extends Controller
     public function answer(Request $request, Stage $stage): JsonResponse
     {
         $data = $request->validate([
-            'answer' => 'required|string|max:20',
+            'answer' => 'required|string|max:50',
         ]);
 
         /** @var Team $team */
         $team = $request->user();
 
         try {
-            $result = $this->engine->validateAnswer($team, $stage, $data['answer']);
+            if ($stage->stage_type === 'enigma_final') {
+                $result = $this->engine->validateWordGuess($team, $stage, $data['answer']);
+            } else {
+                $result = $this->engine->validateAnswer($team, $stage, $data['answer']);
+            }
 
             $status = ($result['correct'] ?? false) ? 200 : (($result['fatal'] ?? false) ? 422 : 200);
 
             return response()->json($result, $status);
         } catch (Throwable $e) {
             return response()->json(['correct' => false, 'fatal' => true, 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    public function unlock(Request $request, Stage $stage): JsonResponse
+    {
+        $data = $request->validate([
+            'code' => 'required|string|max:20',
+        ]);
+
+        /** @var Team $team */
+        $team = $request->user();
+
+        try {
+            $result = $this->engine->unlockWithPassword($team, $stage, $data['code']);
+            return response()->json($result, $result['success'] ? 200 : 422);
+        } catch (Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
     }
 
@@ -173,6 +210,25 @@ class StageController extends Controller
                 'state' => $progress->status,
             ]);
         } catch (RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    public function scanBonusOnus(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'uuid' => 'required|string|size:36',
+        ]);
+
+        /** @var Team $team */
+        $team = $request->user();
+
+        $bonusOnus = BonusOnus::where('qr_code_uuid', $data['uuid'])->firstOrFail();
+
+        try {
+            $result = $this->engine->scanBonusOnus($team, $bonusOnus);
+            return response()->json($result, $result['success'] ? 200 : 422);
+        } catch (Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
     }

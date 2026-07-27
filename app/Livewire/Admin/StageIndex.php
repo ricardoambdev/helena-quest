@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Models\Proof;
+use App\Models\Competition;
 use App\Models\Stage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -15,25 +15,26 @@ use Livewire\Component;
 #[Title('Etapas')]
 class StageIndex extends Component
 {
-    public ?int $proofFilter = null;
+    public ?int $competitionFilter = null;
 
     #[Computed]
-    public function proofs()
+    public function competitions()
     {
-        return Proof::with('competition')->orderBy('competition_id')->orderBy('order')->get();
+        return Competition::orderBy('name')->get();
     }
 
     #[Computed]
     public function stages()
     {
         return Stage::query()
-            ->with(['proof.competition'])
-            ->when($this->proofFilter, fn ($q) => $q->where('proof_id', $this->proofFilter))
-            ->orderBy('proof_id')->orderBy('order')
+            ->with('competition')
+            ->when($this->competitionFilter, fn ($q) => $q->where('competition_id', $this->competitionFilter))
+            ->orderBy('competition_id')
+            ->orderBy('order')
             ->get();
     }
 
-    public function render()
+    public function render(): mixed
     {
         return view('livewire.admin.stage-index');
     }

@@ -25,6 +25,8 @@ class Team extends Model implements AuthenticatableContract
         'password_hash',
         'status',
         'crest_path',
+        'war_cry_audio_path',
+        'war_cry_text',
         'photo_path',
         'description',
         'admin_notes',
@@ -56,7 +58,7 @@ class Team extends Model implements AuthenticatableContract
         return $this->hasMany(TeamStageProgress::class);
     }
 
-    public function proofProgress(): HasMany
+    public function progress(): HasMany
     {
         return $this->hasMany(TeamProgress::class);
     }
@@ -71,14 +73,9 @@ class Team extends Model implements AuthenticatableContract
         return $this->hasMany(AuthenticationLog::class);
     }
 
-    public function finalEnigmaAttempts(): HasMany
+    public function bonusOnus(): HasMany
     {
-        return $this->hasMany(TeamFinalEnigmaAttempt::class);
-    }
-
-    public function finalEnigmaLetters(): HasMany
-    {
-        return $this->hasMany(TeamFinalEnigmaLetter::class);
+        return $this->hasMany(TeamBonusOnus::class);
     }
 
     public function isActive(): bool

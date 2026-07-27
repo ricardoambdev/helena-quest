@@ -6,9 +6,6 @@ namespace App\Livewire;
 
 use App\Models\Audio;
 use App\Models\Competition;
-use App\Models\FinalEnigma;
-use App\Models\TeamFinalEnigmaAttempt;
-use App\Models\TeamFinalEnigmaLetter;
 use App\Models\TeamProgress;
 use App\Models\TeamStageProgress;
 use Livewire\Attributes\Computed;
@@ -28,7 +25,7 @@ class Telao extends Component
     #[Computed]
     public function competition(): Competition
     {
-        return Competition::with(['teams', 'proofs.stages'])->findOrFail($this->competitionId);
+        return Competition::with(['teams', 'stages'])->findOrFail($this->competitionId);
     }
 
     #[Computed]
@@ -86,19 +83,14 @@ class Telao extends Component
             ->get()
             ->groupBy('stage_id');
 
-        return $this->competition->proofs->map(fn ($proof) => [
-            'id' => $proof->id,
-            'name' => $proof->name,
-            'order' => $proof->order,
-            'color_hex' => $proof->color_hex,
-            'stages' => $proof->stages->map(fn ($stage) => [
-                'id' => $stage->id,
-                'name' => $stage->name,
-                'order' => $stage->order,
-                'completed_count' => $allStagesProgress->get($stage->id)?->where('status', 'completed')->count() ?? 0,
-                'active_count' => $allStagesProgress->get($stage->id)?->filter(fn ($p) => in_array($p->status, ['active', 'photo_sent', 'answered_wrong'], true))->count() ?? 0,
-                'total' => count($teamIds),
-            ])->values()->toArray(),
+        return $this->competition->stages->map(fn ($stage) => [
+            'id' => $stage->id,
+            'name' => $stage->name,
+            'order' => $stage->order,
+            'stage_type' => $stage->stage_type,
+            'completed_count' => $allStagesProgress->get($stage->id)?->where('status', 'completed')->count() ?? 0,
+            'active_count' => $allStagesProgress->get($stage->id)?->filter(fn ($p) => in_array($p->status, ['active', 'photo_sent', 'answered_wrong'], true))->count() ?? 0,
+            'total' => count($teamIds),
         ])->sortBy('order')->values()->toArray();
     }
 
@@ -189,32 +181,24 @@ class Telao extends Component
     }
 
     #[Computed]
-    public function finalEnigmaStatus(): ?array
+    public function enigmaFinalStatus(): ?array
     {
         $teamIds = $this->activeTeamIds;
         if (empty($teamIds)) {
             return null;
         }
 
-        $enigma = FinalEnigma::where('competition_id', $this->competitionId)->first();
-        if (!$enigma) {
+        $enigmaStage = $this->competition->stages->where('stage_type', 'enigma_final')->first();
+        if (!$enigmaStage) {
             return null;
         }
 
-        $solvedTeamIds = TeamFinalEnigmaAttempt::where('final_enigma_id', $enigma->id)
-            ->where('correct', true)
+        $teamMap = $this->competition->teams->where('status', 'active')->keyBy('id');
+
+        $completed = TeamStageProgress::where('stage_id', $enigmaStage->id)
+            ->where('status', 'completed')
             ->pluck('team_id')
             ->all();
-
-        $letterCounts = TeamFinalEnigmaLetter::where('final_enigma_id', $enigma->id)
-            ->whereIn('team_id', $teamIds)
-            ->selectRaw('team_id, COUNT(*) as count')
-            ->groupBy('team_id')
-            ->get()
-            ->keyBy('team_id');
-
-        $teamMap = $this->competition->teams->where('status', 'active')->keyBy('id');
-        $requiredLetters = $enigma->qrCodes->count();
 
         $statuses = [];
         foreach ($teamIds as $id) {
@@ -222,16 +206,15 @@ class Telao extends Component
                 'team_id' => $id,
                 'team_name' => $teamMap->get($id)?->name ?? '?',
                 'team_color' => $teamMap->get($id)?->color_hex ?? '#CCCCCC',
-                'solved' => in_array($id, $solvedTeamIds, true),
-                'letters_collected' => (int) ($letterCounts->get($id)?->count ?? 0),
-                'required_letters' => $requiredLetters,
-                'word' => $enigma->word,
+                'solved' => in_array($id, $completed, true),
+                'word' => $enigmaStage->word,
             ];
         }
 
         return [
             'enabled' => true,
-            'required_letters' => $requiredLetters,
+            'stage_name' => $enigmaStage->name,
+            'word' => $enigmaStage->word,
             'teams' => $statuses,
         ];
     }

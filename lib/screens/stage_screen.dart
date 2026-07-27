@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/stage_provider.dart';
 import '../services/tts_service.dart';
 import '../config/theme.dart';
+import '../config/routes.dart';
 
 class StageScreen extends StatefulWidget {
   final TtsService? ttsService;
@@ -63,8 +64,7 @@ class _StageScreenState extends State<StageScreen> {
                 children: [
                   Center(
                     child: Container(
-                      width: 40,
-                      height: 4,
+                      width: 40, height: 4,
                       decoration: BoxDecoration(
                         color: AppTheme.rule,
                         borderRadius: BorderRadius.circular(2),
@@ -72,26 +72,16 @@ class _StageScreenState extends State<StageScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'DICAS',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  Text('DICAS', style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    fontFamily: 'Inter', fontWeight: FontWeight.w700)),
                   const SizedBox(height: 16),
                   if (hints.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Text('Nenhuma dica dispon\u00EDvel.'),
+                      child: Text('Nenhuma dica disponivel.'),
                     )
                   else
-                    ...hints.map(
-                      (hint) => _HintTile(
-                        hint: hint,
-                        stageId: stageId,
-                      ),
-                    ),
+                    ...hints.map((h) => _HintTile(hint: h, stageId: stageId)),
                 ],
               ),
             );
@@ -105,143 +95,233 @@ class _StageScreenState extends State<StageScreen> {
   Widget build(BuildContext context) {
     final stageProv = context.watch<StageProvider>();
     final stage = stageProv.currentStage;
+    final stageType = stage?['stage_type'] as String?;
 
     return Scaffold(
       backgroundColor: AppTheme.paper,
-      body: SafeArea(
-        child: stageProv.loading
-            ? const Center(child: CircularProgressIndicator())
-            : stage == null
-                ? Center(
-                    child: Text(
-                      stageProv.error ?? 'Etapa n\u00E3o encontrada',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  )
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.ignite,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                'ETAPA ${stage['order'] ?? '?'}',
-                                style: const TextStyle(
-                                  fontFamily: 'JetBrains Mono',
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text(
-                                'VOLTAR AO MAPA',
-                                style: TextStyle(
-                                  fontFamily: 'JetBrains Mono',
-                                  fontSize: 12,
-                                  color: AppTheme.chalk,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-
-                        Text(
-                          stage['name'] as String? ?? '',
-                          style: Theme.of(context).textTheme.displayMedium,
-                        ),
-                        const SizedBox(height: 16),
-
-                        if (stage['image_url'] != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 20),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                stage['image_url'] as String,
-                                width: double.infinity,
-                                height: 220,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => Container(
-                                  height: 220,
-                                  color: AppTheme.rule,
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.image,
-                                      color: AppTheme.chalk,
-                                      size: 48,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-
-                        Text(
-                          stage['narrative_text'] as String? ?? '',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontSize: 18,
-                            height: 1.6,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () =>
-                                Navigator.pushNamed(context, '/photo'),
-                            icon: const Icon(Icons.camera_alt),
-                            label: const Text(
-                              'TIRAR FOTO',
-                              style: TextStyle(fontFamily: 'JetBrains Mono'),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () =>
-                                Navigator.pushNamed(context, '/answer'),
-                            icon: const Icon(Icons.edit),
-                            label: const Text(
-                              'RESPONDER',
-                              style: TextStyle(fontFamily: 'JetBrains Mono'),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: _openHintsSheet,
-                            icon: const Icon(Icons.lightbulb_outline),
-                            label: const Text(
-                              'DICAS',
-                              style: TextStyle(fontFamily: 'JetBrains Mono'),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      appBar: AppBar(
+        backgroundColor: AppTheme.ink,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          _typeLabel(stageType),
+          style: const TextStyle(fontFamily: 'JetBrains Mono', fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.lightbulb_outline, color: Colors.white),
+            onPressed: _openHintsSheet,
+          ),
+        ],
       ),
+      body: stageProv.loading
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.ignite))
+          : stage == null
+              ? Center(
+                  child: Text(stageProv.error ?? 'Etapa nao encontrada',
+                    style: Theme.of(context).textTheme.bodyLarge))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppTheme.ignite,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'ETAPA ${stage['order'] ?? '?'}',
+                              style: const TextStyle(
+                                fontFamily: 'JetBrains Mono', fontWeight: FontWeight.w700,
+                                fontSize: 16, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Text(stage['name'] as String? ?? '',
+                        style: Theme.of(context).textTheme.displayMedium),
+                      const SizedBox(height: 16),
+
+                      if (stage['image_url'] != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              stage['image_url'] as String,
+                              width: double.infinity, height: 220, fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Container(
+                                height: 220, color: AppTheme.rule,
+                                child: const Center(child: Icon(Icons.image, color: AppTheme.chalk, size: 48)),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      Text(stage['narrative_text'] as String? ?? '',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 18, height: 1.6)),
+                      const SizedBox(height: 24),
+
+                      if (stageType == 'caca_ao_tesouro')
+                        _buildTreasureHuntActions(stage)
+                      else if (stageType == 'mapas_bussola')
+                        _buildCompassActions(stage)
+                      else if (stageType == 'charada')
+                        _buildRiddleActions(stage)
+                      else if (stageType == 'enigma_final')
+                        _buildFinalEnigmaActions()
+                      else
+                        _buildDefaultActions(stage),
+                    ],
+                  ),
+                ),
     );
+  }
+
+  Widget _buildRiddleActions(Map<String, dynamic> stage) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.answer),
+            icon: const Icon(Icons.edit),
+            label: const Text('RESPONDER', style: TextStyle(fontFamily: 'JetBrains Mono')),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTreasureHuntActions(Map<String, dynamic> stage) {
+    final subQuestions = stage['sub_questions'] as List<dynamic>? ?? [];
+    final hasPhoto = stage['requires_photo'] == true;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.scanner),
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('ESCANEAR QR CODE', style: TextStyle(fontFamily: 'JetBrains Mono')),
+          ),
+        ),
+        if (subQuestions.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.answer),
+              icon: const Icon(Icons.edit),
+              label: const Text('RESPONDER PERGUNTAS', style: TextStyle(fontFamily: 'JetBrains Mono')),
+            ),
+          ),
+        ],
+        if (hasPhoto) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.photo),
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('TIRAR FOTO', style: TextStyle(fontFamily: 'JetBrains Mono')),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCompassActions(Map<String, dynamic> stage) {
+    final direction = stage['compass_direction'] as String?;
+    final steps = stage['compass_steps'] as int?;
+    final landmarks = stage['compass_landmarks'] as String?;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.compass, arguments: {
+              'direction': direction,
+              'steps': steps,
+              'landmarks': landmarks,
+            }),
+            icon: const Icon(Icons.navigation),
+            label: const Text('ABRIR BUSSOLA', style: TextStyle(fontFamily: 'JetBrains Mono')),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.answer),
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('INSERIR NUMEROS DO QR', style: TextStyle(fontFamily: 'JetBrains Mono')),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFinalEnigmaActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.finalEnigma),
+            icon: const Icon(Icons.lock_open),
+            label: const Text('ABRIR ENIGMA FINAL', style: TextStyle(fontFamily: 'JetBrains Mono')),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDefaultActions(Map<String, dynamic> stage) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.scanner),
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('ESCANEAR QR CODE', style: TextStyle(fontFamily: 'JetBrains Mono')),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.answer),
+            icon: const Icon(Icons.edit),
+            label: const Text('RESPONDER', style: TextStyle(fontFamily: 'JetBrains Mono')),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _typeLabel(String? type) {
+    switch (type) {
+      case 'charada': return 'CHARADA';
+      case 'caca_ao_tesouro': return 'CACA AO TESOURO';
+      case 'mapas_bussola': return 'BUSSOLA';
+      case 'enigma_final': return 'ENIGMA FINAL';
+      default: return 'ETAPA';
+    }
   }
 }
 
@@ -275,20 +355,10 @@ class _HintTileState extends State<_HintTile> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'Dica',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  child: Text('Dica', style: Theme.of(context).textTheme.titleLarge),
                 ),
                 if (isLocked && price != null)
-                  Text(
-                    '$price pts',
-                    style: const TextStyle(
-                      fontFamily: 'JetBrains Mono',
-                      fontSize: 13,
-                      color: AppTheme.chalk,
-                    ),
-                  ),
+                  Text('$price pts', style: const TextStyle(fontFamily: 'JetBrains Mono', fontSize: 13, color: AppTheme.chalk)),
               ],
             ),
             if (isLocked) ...[
@@ -296,41 +366,24 @@ class _HintTileState extends State<_HintTile> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _buying
-                      ? null
-                      : () async {
-                          setState(() => _buying = true);
-                          final stageProv = context.read<StageProvider>();
-                          await stageProv.buyHint(
-                            widget.stageId,
-                            hint['id'] as String,
-                          );
-                          if (!mounted) return;
-                          setState(() => _buying = false);
-                        },
+                  onPressed: _buying ? null : () async {
+                    setState(() => _buying = true);
+                    final stageProv = context.read<StageProvider>();
+                    await stageProv.buyHint(widget.stageId, hint['id'] as String);
+                    if (!mounted) return;
+                    setState(() => _buying = false);
+                  },
                   child: _buying
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'COMPRAR',
-                          style: TextStyle(fontFamily: 'JetBrains Mono'),
-                        ),
+                      ? const SizedBox(width: 18, height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('COMPRAR', style: TextStyle(fontFamily: 'JetBrains Mono')),
                 ),
               ),
             ],
             if (!isLocked && text != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  text,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
               ),
           ],
         ),
