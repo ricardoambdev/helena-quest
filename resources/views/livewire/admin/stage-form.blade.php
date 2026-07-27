@@ -6,7 +6,7 @@
     <header class="mb-8">
         <p class="text-ignite text-xs font-display font-semibold uppercase tracking-[0.18em] mb-1">Etapas</p>
         <h1 class="font-display font-extrabold text-3xl text-ink">
-            @php echo $this->name ?: ($this->proof()?->name ?? 'Nova etapa'); @endphp
+            @php echo $this->name ?: ($this->competition()?->name ?? 'Nova etapa'); @endphp
     </h1>
         <p class="text-chalk mt-2">Defina o nome, narrativa, geolocalização e resposta da etapa</p>
 </header>
@@ -93,9 +93,9 @@
                </div>
             @endif
 
-            @if ($this->proof())
+            @if ($this->competition())
                 <div class="bg-white rounded-card border border-rule p-5 shadow-card">
-                    <p class="font-display text-[11px] uppercase tracking-[0.16em] text-chalk mb-3">Etapas desta prova</p>
+                    <p class="font-display text-[11px] uppercase tracking-[0.16em] text-chalk mb-3">Etapas desta competicao</p>
                     @if ($stageCollection->isEmpty())
                         <p class="text-chalk italic text-sm">Nenhuma etapa cadastrada</p>
                     @else

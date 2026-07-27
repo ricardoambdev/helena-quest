@@ -6,14 +6,13 @@ namespace App\Livewire\Admin;
 
 use App\Models\Competition;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.admin')]
-#[Title('Editar competição')]
+#[Title('Editar competicao')]
 class CompetitionForm extends Component
 {
     public ?Competition $competition = null;
@@ -85,20 +84,19 @@ class CompetitionForm extends Component
             $this->competition = $created;
         }
 
-        session()->flash('success', $this->competition->wasRecentlyCreated ? 'Competição criada.' : 'Competição atualizada.');
-
+        session()->flash('success', $this->competition->wasRecentlyCreated ? 'Competicao criada.' : 'Competicao atualizada.');
         $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     public function publish(): void
     {
         if (!$this->competition?->exists) {
-            session()->flash('error', 'Salve a competição antes de publicar.');
+            session()->flash('error', 'Salve a competicao antes de publicar.');
             return;
         }
 
-        if ($this->competition->proofs()->count() === 0) {
-            session()->flash('error', 'Adicione ao menos uma prova para publicar.');
+        if ($this->competition->stages()->count() === 0) {
+            session()->flash('error', 'Adicione ao menos uma etapa para publicar.');
             return;
         }
 
@@ -106,15 +104,13 @@ class CompetitionForm extends Component
         $this->competition->update(['status' => 'published', 'updated_by' => auth()->id()]);
         event(new \App\Events\CompetitionStatusChanged($this->competition->fresh(), $previous));
 
-        session()->flash('success', 'Competição publicada.');
+        session()->flash('success', 'Competicao publicada.');
         $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     public function startCompetition(): void
     {
-        if (!$this->competition?->exists) {
-            return;
-        }
+        if (!$this->competition?->exists) return;
 
         $previous = $this->competition->status;
         $this->competition->update([
@@ -125,27 +121,23 @@ class CompetitionForm extends Component
 
         event(new \App\Events\CompetitionStatusChanged($this->competition->fresh(), $previous));
 
-        session()->flash('success', 'Competição iniciada. Boas gincanas!');
+        session()->flash('success', 'Competicao iniciada.');
         $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     public function pause(): void
     {
-        if (!$this->competition?->exists || $this->competition->status !== 'ongoing') {
-            return;
-        }
+        if (!$this->competition?->exists || $this->competition->status !== 'ongoing') return;
         $previous = $this->competition->status;
         $this->competition->update(['status' => 'paused', 'updated_by' => auth()->id()]);
         event(new \App\Events\CompetitionStatusChanged($this->competition->fresh(), $previous));
-        session()->flash('success', 'Competição pausada.');
+        session()->flash('success', 'Competicao pausada.');
         $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     public function finish(): void
     {
-        if (!$this->competition?->exists) {
-            return;
-        }
+        if (!$this->competition?->exists) return;
         $previous = $this->competition->status;
         $this->competition->update([
             'status' => 'finished',
@@ -153,14 +145,14 @@ class CompetitionForm extends Component
             'updated_by' => auth()->id(),
         ]);
         event(new \App\Events\CompetitionStatusChanged($this->competition->fresh(), $previous));
-        session()->flash('success', 'Competição encerrada.');
+        session()->flash('success', 'Competicao encerrada.');
         $this->redirectRoute('admin.competitions.edit', $this->competition->id);
     }
 
     #[Computed]
-    public function proofs()
+    public function stages()
     {
-        return $this->competition?->proofs()->orderBy('order')->get() ?? collect();
+        return $this->competition?->stages()->orderBy('order')->get() ?? collect();
     }
 
     public function render()

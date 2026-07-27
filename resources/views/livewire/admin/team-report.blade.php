@@ -39,7 +39,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-rule">
-                    @forelse ($team->stageProgress()->with('stage.proof')->orderBy('stage_id')->get() as $sp)
+                    @forelse ($team->stageProgress()->with('stage')->orderBy('stage_id')->get() as $sp)
                         @php
                             $statusClass = match($sp->status) {
                                 'completed' => 'bg-green-100 text-green-800',
@@ -50,7 +50,7 @@
                             $secs = ($sp->time_spent_seconds ?? 0) % 60;
                         @endphp
                         <tr class="hover:bg-paper/50 transition-colors">
-                            <td class="py-3 px-4 text-chalk">{{ $sp->stage?->proof?->name ?? '—' }}</td>
+                            <td class="py-3 px-4 text-chalk">{{ $sp->stage?->stage_type ?? '—' }}</td>
                             <td class="py-3 px-4 font-display font-semibold">{{ $sp->stage?->name ?? '—' }}</td>
                             <td class="py-3 px-4 text-center">
                                 <span class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase {{ $statusClass }}">{{ $sp->status }}</span>

@@ -5,7 +5,7 @@
     $cards = [
         ['label' => 'Competições', 'value' => $totals['competitions'], 'hint' => 'incluindo arquivadas'],
         ['label' => 'Em andamento', 'value' => $totals['ongoing'], 'hint' => 'acontecendo agora'],
-        ['label' => 'Provas', 'value' => $totals['proofs'], 'hint' => 'em todas as competições'],
+        ['label' => 'Etapas', 'value' => $totals['stages'], 'hint' => 'em todas as competicoes'],
         ['label' => 'Equipes ativas', 'value' => $totals['teams_active'] . '/' . $totals['teams_total'], 'hint' => 'status ativo'],
     ];
 @endphp

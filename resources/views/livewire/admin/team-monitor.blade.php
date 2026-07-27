@@ -32,7 +32,7 @@
         <main>
             @php $sel = $this->selectedTeam; @endphp
             @if ($sel)
-                @php $progress = $sel->proofProgress->first(); @endphp
+                @php $progress = $sel->progress->first(); @endphp
                 <article class="bg-white rounded-card border border-rule p-6 shadow-card">
                     <header class="flex items-baseline justify-between mb-4">
                         <div>

@@ -1,6 +1,6 @@
 @php
     $allStages = $this->stages;
-    $proofsGroup = $this->proofs;
+    $competitions = $this->competitions;
 @endphp
 
 <div>
@@ -12,14 +12,13 @@
         <a href="{{ route('admin.stages.create') }}" class="px-5 py-2 rounded-card bg-ignite text-paper font-display font-bold hover:bg-ember transition-colors duration-200">Nova etapa</a>
 </header>
 
-    <div class="bg-white rounded-card border border-rule p-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-3 shadow-card">
-        <select wire:model.live="proofFilter" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none">
-            <option value="">Todas as provas</option>
-            @foreach ($proofsGroup as $p)
-                <option value="{{ $p->id }}">@php echo $p->competition->name; @endphp · @php echo $p->name; @endphp</option>
+    <div class="bg-white rounded-card border border-rule p-4 mb-4 shadow-card">
+        <select wire:model.live="competitionFilter" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none w-full">
+            <option value="">Todas as competicoes</option>
+            @foreach ($competitions as $c)
+                <option value="{{ $c->id }}">@php echo $c->name; @endphp</option>
             @endforeach
  </select>
-        <a href="{{ route('admin.proofs.index') }}" class="text-ignite font-display font-semibold text-sm self-center">Gerenciar provas →</a>
 </div>
 
     <div class="bg-white rounded-card border border-rule shadow-card overflow-hidden">
@@ -32,7 +31,7 @@
                         <div class="bg-white rounded-card border border-rule px-5 py-4 shadow-card flex items-start justify-between gap-3">
                             <div>
                                 <h3 class="font-display font-bold text-ink">@php echo $s->name; @endphp</h3>
-                                <p class="text-chalk text-sm">@php echo $s->proof->competition->name; @endphp · @php echo $s->proof->name; @endphp</p>
+                                <p class="text-chalk text-sm">@php echo $s->competition->name; @endphp · @php echo $s->stage_type; @endphp</p>
                                <p class="font-mono text-[10px] text-chalk mt-2 break-all">QR: @php echo $s->qr_code_uuid; @endphp</p>
                       </div>
                             <a href="{{ route('admin.stages.edit', $s->id) }}" class="text-ignite font-display font-semibold">Editar →</a>

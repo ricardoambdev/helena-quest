@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin;
 
-use App\Models\Proof;
+use App\Models\Competition;
+use App\Models\Stage;
+use App\Models\TeamStageProgress;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -12,42 +14,50 @@ use Livewire\Component;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('layouts.admin')]
-#[Title('Relatório por Prova')]
+#[Title('Relatório por Etapas')]
 class ProofReport extends Component
 {
-    public ?int $proofId = null;
+    public ?int $competitionId = null;
 
     protected $queryString = [
-        'proofId' => ['except' => null],
+        'competitionId' => ['except' => null],
     ];
 
     #[Computed]
-    public function proofs()
+    public function competitions()
     {
-        return Proof::with('competition')->orderBy('competition_id')->orderBy('order')->get();
+        return Competition::orderByDesc('year')->get();
     }
 
-    public function proof()
+    #[Computed]
+    public function stages()
     {
-        return $this->proofId ? Proof::with([
-            'competition',
-            'stages' => fn ($q) => $q->orderBy('order'),
-            'stages.teamStageProgress',
-        ])->find($this->proofId) : null;
+        return $this->competitionId
+            ? Stage::where('competition_id', $this->competitionId)
+                ->with('teamStageProgress')
+                ->orderBy('order')
+                ->get()
+            : collect();
+    }
+
+    #[Computed]
+    public function competition()
+    {
+        return $this->competitionId ? Competition::find($this->competitionId) : null;
     }
 
     public function exportCsv(): StreamedResponse
     {
-        $p = $this->proof();
-        if (!$p) {
+        $stages = $this->stages();
+        if ($stages->isEmpty()) {
             return response()->streamDownload(fn () => '', 'relatorio-vazio.csv');
         }
 
-        return response()->streamDownload(function () use ($p) {
+        return response()->streamDownload(function () use ($stages) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Etapa', 'Total', 'Completos', 'Ativos', '% Conclusão']);
+            fputcsv($handle, ['Etapa', 'Tipo', 'Total', 'Completos', 'Ativos', '% Conclusao']);
 
-            foreach ($p->stages as $stage) {
+            foreach ($stages as $stage) {
                 $total = $stage->teamStageProgress->count();
                 $completed = $stage->teamStageProgress->where('status', 'completed')->count();
                 $active = $stage->teamStageProgress->whereIn('status', ['active', 'photo_sent', 'answered_wrong'])->count();
@@ -55,6 +65,7 @@ class ProofReport extends Component
 
                 fputcsv($handle, [
                     $stage->name,
+                    $stage->stage_type,
                     $total,
                     $completed,
                     $active,
@@ -63,13 +74,13 @@ class ProofReport extends Component
             }
 
             fclose($handle);
-        }, 'relatorio-prova-' . $p->id . '.csv');
+        }, 'relatorio-etapas.csv');
     }
 
     public function render()
     {
         return view('livewire.admin.proof-report', [
-            'proof' => $this->proof(),
+            'stages' => $this->stages(),
         ]);
     }
 }

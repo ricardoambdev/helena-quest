@@ -1,72 +1,66 @@
 <div>
-    <header class="mb-8 flex items-end justify-between gap-4">
-        <div>
-            <p class="text-ignite text-xs font-display font-semibold uppercase tracking-[0.18em] mb-1">Relatórios</p>
-            <h1 class="font-display font-extrabold text-3xl text-ink">Por Prova</h1>
-        </div>
-    </header>
+    <header class="mb-8">
+        <p class="text-ignite text-xs font-display font-semibold uppercase tracking-[0.18em] mb-1">Relatorios</p>
+        <h1 class="font-display font-extrabold text-3xl text-ink">Progresso por Etapa</h1>
+</header>
 
     <div class="bg-white rounded-card border border-rule p-4 mb-4 shadow-card">
-        <select wire:model.live="proofId" class="w-full px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none">
-            <option value="">Selecione uma prova</option>
-            @foreach ($this->proofs as $p)
-                <option value="{{ $p->id }}">{{ $p->competition?->name ?? '—' }} &middot; {{ $p->name }}</option>
-            @endforeach
-        </select>
-    </div>
+        <label class="flex flex-col gap-1">
+            <span class="font-display text-xs uppercase tracking-wider text-chalk">Competicao</span>
+            <select wire:model.live="competitionId" class="px-3 py-2 rounded-card border border-rule focus:border-ignite outline-none">
+                <option value="">Selecione uma competicao</option>
+                @foreach ($this->competitions as $c)
+                    <option value="{{ $c->id }}">@php echo $c->name; @endphp</option>
+                @endforeach
+            </select>
+        </label>
+</div>
 
-    @if ($proof)
-        <div class="bg-white rounded-card border border-rule shadow-card overflow-hidden">
-            <div class="p-4 border-b border-rule flex items-center justify-between">
-                <div>
-                    <h2 class="font-display font-bold text-lg">{{ $proof->name }}</h2>
-                    <p class="text-chalk text-sm">{{ $proof->competition?->name ?? '—' }} &middot; {{ $proof->stages->count() }} etapas</p>
-                </div>
-                <button wire:click="exportCsv" class="px-4 py-2 rounded-card border border-ignite text-ignite font-display font-semibold hover:bg-ignite hover:text-paper transition-colors duration-200 text-sm">
+    @if ($this->competitionId)
+        <div class="bg-white rounded-card border border-rule p-6 shadow-card mb-4">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-display font-bold text-lg">@php echo $this->competition?->name ?? '—'; @endphp</h2>
+                <button wire:click="exportCsv" class="px-4 py-2 rounded-card bg-ink text-paper font-display font-semibold text-sm hover:bg-ink/80 transition-colors duration-200">
                     Exportar CSV
                 </button>
             </div>
 
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-rule font-display text-[10px] uppercase tracking-wider text-chalk">
-                        <th class="text-left py-3 px-4">Etapa</th>
-                        <th class="text-center py-3 px-4">Total</th>
-                        <th class="text-center py-3 px-4">Completos</th>
-                        <th class="text-center py-3 px-4">Ativos</th>
-                        <th class="text-center py-3 px-4">% Conclusão</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-rule">
-                    @forelse ($proof->stages as $stage)
-                        @php
-                            $total = $stage->teamStageProgress->count();
-                            $completed = $stage->teamStageProgress->where('status', 'completed')->count();
-                            $active = $stage->teamStageProgress->whereIn('status', ['active', 'photo_sent', 'answered_wrong'])->count();
-                            $pct = $total > 0 ? round(($completed / $total) * 100) : 0;
-                            $barColor = $pct >= 80 ? 'bg-green-500' : ($pct >= 40 ? 'bg-flame' : 'bg-chalk');
-                        @endphp
-                        <tr class="hover:bg-paper/50 transition-colors">
-                            <td class="py-3 px-4 font-display font-semibold">{{ $stage->name }}</td>
-                            <td class="py-3 px-4 text-center font-mono">{{ $total }}</td>
-                            <td class="py-3 px-4 text-center font-mono text-green-700">{{ $completed }}</td>
-                            <td class="py-3 px-4 text-center font-mono text-ember">{{ $active }}</td>
-                            <td class="py-3 px-4 text-center">
-                                <div class="flex items-center gap-2 justify-end">
-                                    <div class="w-20 h-2 bg-rule rounded-full overflow-hidden">
-                                        <div class="h-full rounded-full {{ $barColor }}" style="width:{{ $pct }}%"></div>
-                                    </div>
-                                    <span class="font-mono text-xs">{{ $pct }}%</span>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="5" class="text-center py-8 text-chalk">Nenhuma etapa nesta prova</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+            @if ($stages->isEmpty())
+                <p class="text-chalk italic py-8 text-center">Nenhuma etapa cadastrada</p>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="border-b border-rule">
+                            <tr>
+                                <th class="text-left py-3 px-4">Etapa</th>
+                                <th class="text-left py-3 px-4">Tipo</th>
+                                <th class="text-center py-3 px-4">Total</th>
+                                <th class="text-center py-3 px-4">Completos</th>
+                                <th class="text-center py-3 px-4">Ativos</th>
+                                <th class="text-center py-3 px-4">% Conclusao</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-rule">
+                            @foreach ($stages as $stage)
+                                @php
+                                    $total = $stage->teamStageProgress->count();
+                                    $completed = $stage->teamStageProgress->where('status', 'completed')->count();
+                                    $active = $stage->teamStageProgress->whereIn('status', ['active', 'photo_sent', 'answered_wrong'])->count();
+                                    $pct = $total > 0 ? round(($completed / $total) * 100) : 0;
+                                @endphp
+                                <tr>
+                                    <td class="py-3 px-4 font-display font-semibold">@php echo $stage->name; @endphp</td>
+                                    <td class="py-3 px-4 text-chalk">@php echo $stage->stage_type; @endphp</td>
+                                    <td class="py-3 px-4 text-center">@php echo $total; @endphp</td>
+                                    <td class="py-3 px-4 text-center text-green-600">@php echo $completed; @endphp</td>
+                                    <td class="py-3 px-4 text-center text-ember">@php echo $active; @endphp</td>
+                                    <td class="py-3 px-4 text-center font-mono font-semibold">@php echo $pct; @endphp%</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
-    @else
-        <p class="text-chalk text-center py-12">Selecione uma prova para ver o relatório</p>
     @endif
 </div>

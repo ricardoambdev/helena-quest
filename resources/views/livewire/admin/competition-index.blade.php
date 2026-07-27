@@ -54,7 +54,7 @@
                             @endphp
                             <span class="text-[10px] uppercase px-2 py-0.5 rounded-pill {{ $css }}">@php echo $c->status; @endphp</span>
                  </td>
-                        <td class="p-3 text-ink">@php echo $c->proofs_count; @endphp</td>
+                        <td class="p-3 text-ink">@php echo $c->stages_count; @endphp</td>
                         <td class="p-3 text-right">
                             <a href="{{ route('admin.competitions.edit', $c->id) }}" class="text-ignite font-display font-semibold hover:underline">Editar</a>
                             @if ($c->status === 'planning' || $c->status === 'archived')

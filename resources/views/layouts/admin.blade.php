@@ -60,8 +60,7 @@
                 $navigation = [
                     ['label' => 'Painel geral',     'route' => 'admin.dashboard',          'icon' => 'home'],
                     ['label' => 'Competições',      'route' => 'admin.competitions.index', 'icon' => 'trophy'],
-                    ['label' => 'Provas',           'route' => 'admin.proofs.index',       'icon' => 'map'],
-                    ['label' => 'Etapas',           'route' => 'admin.stages.index',       'icon' => 'qr'],
+                    ['label' => 'Etapas',           'route' => 'admin.stages.index',       'icon' => 'map'],
                     ['label' => 'Equipes',          'route' => 'admin.teams.index',        'icon' => 'users'],
                     ['label' => 'Enigma Final',     'route' => 'admin.final-enigma.index', 'icon' => 'key'],
                     ['label' => 'Telão (preview)',  'route' => 'telao.index',               'icon' => 'monitor', 'blank' => true],

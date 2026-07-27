@@ -22,7 +22,7 @@ class TeamMonitor extends Component
     public function teams()
     {
         return Team::query()
-            ->with(['competition', 'proofProgress'])
+            ->with(['competition', 'progress'])
             ->when($this->competitionFilter, fn ($q) => $q->where('competition_id', $this->competitionFilter))
             ->whereNull('deleted_at')
             ->orderBy('name')
@@ -32,7 +32,7 @@ class TeamMonitor extends Component
     #[Computed]
     public function selectedTeam()
     {
-        return $this->teamId ? Team::with(['stageProgress.stage', 'proofProgress'])->find($this->teamId) : null;
+        return $this->teamId ? Team::with(['stageProgress.stage', 'progress'])->find($this->teamId) : null;
     }
 
     public function render()

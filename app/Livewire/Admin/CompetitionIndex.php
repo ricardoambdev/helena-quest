@@ -11,7 +11,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 #[Layout('layouts.admin')]
-#[Title('Competições')]
+#[Title('Competicoes')]
 class CompetitionIndex extends Component
 {
     use WithPagination;
@@ -36,17 +36,17 @@ class CompetitionIndex extends Component
     {
         $c = Competition::findOrFail($id);
         if (in_array($c->status, ['ongoing', 'paused', 'finished'], true)) {
-            session()->flash('error', 'Não é possível excluir competição já em andamento ou encerrada.');
+            session()->flash('error', 'Nao e possivel excluir competicao ja em andamento ou encerrada.');
             return;
         }
         $c->delete();
-        session()->flash('success', 'Competição removida.');
+        session()->flash('success', 'Competicao removida.');
     }
 
     public function render()
     {
         $rows = Competition::query()
-            ->withCount('proofs')
+            ->withCount('stages')
             ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->when($this->yearFilter, fn ($q) => $q->where('year', $this->yearFilter))
             ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))

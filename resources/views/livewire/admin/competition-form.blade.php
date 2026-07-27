@@ -1,5 +1,5 @@
 @php
-    $proofs = $this->proofs;
+    $stagesColl = $this->stages;
 @endphp
 
 <div>
@@ -109,27 +109,27 @@
         <section class="mt-10">
             <header class="flex items-baseline justify-between mb-4">
                 <div>
-                    <p class="text-ignite text-xs font-display font-semibold uppercase tracking-[0.18em] mb-1">Provas</p>
-                    <h2 class="font-display font-bold text-2xl text-ink">@php echo $proofs->count(); @endphp prova(s) nesta competição</h2>
+                    <p class="text-ignite text-xs font-display font-semibold uppercase tracking-[0.18em] mb-1">Etapas</p>
+                    <h2 class="font-display font-bold text-2xl text-ink">@php echo $stagesColl->count(); @endphp etapa(s) nesta competicao</h2>
              </div>
-                <a href="{{ route('admin.proofs.create', ['competition_id' => $this->competition->id]) }}" class="px-4 py-2 rounded-card border border-ink text-ink font-display font-semibold hover:bg-ink hover:text-paper transition-colors duration-200">
-                    Adicionar prova
+                <a href="{{ route('admin.stages.create', ['competition_id' => $this->competition->id]) }}" class="px-4 py-2 rounded-card border border-ink text-ink font-display font-semibold hover:bg-ink hover:text-paper transition-colors duration-200">
+                    Adicionar etapa
              </a>
          </header>
 
-            @if ($proofs->isEmpty())
-                <p class="text-chalk italic py-8 text-center">Nenhuma prova cadastrada. Adicione ao menos uma para publicar a competição</p>
+            @if ($stagesColl->isEmpty())
+                <p class="text-chalk italic py-8 text-center">Nenhuma etapa cadastrada. Adicione ao menos uma para publicar a competicao</p>
             @else
                 <ul class="stage-ladder space-y-3">
-                    @foreach ($proofs as $p)
+                    @foreach ($stagesColl as $s)
                         <li class="step bg-white rounded-card border border-rule px-5 py-4 shadow-card">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
-                                    <h3 class="font-display font-bold text-ink">@php echo $p->name; @endphp</h3>
-                                    <p class="text-chalk text-sm">@php echo $p->description ?? '—'; @endphp</p>
-                                    <p class="text-[11px] uppercase tracking-wider text-chalk mt-2">@php echo $p->status; @endphp · {{ $p->stages_count ?? 0 }} etapas</p>
+                                    <h3 class="font-display font-bold text-ink">@php echo $s->name; @endphp</h3>
+                                    <p class="text-chalk text-sm">@php echo $s->stage_type ?? '—'; @endphp</p>
+                                    <p class="text-[11px] uppercase tracking-wider text-chalk mt-2">Ordem @php echo $s->order; @endphp</p>
                              </div>
-                                <a href="{{ route('admin.proofs.edit', $p->id) }}" class="text-ignite font-display font-semibold">Editar →</a>
+                                <a href="{{ route('admin.stages.edit', $s->id) }}" class="text-ignite font-display font-semibold">Editar →</a>
                          </div>
                       </li>
                     @endforeach

@@ -12,7 +12,7 @@ use Livewire\Component;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Layout('layouts.admin')]
-#[Title('Relatório por Equipe')]
+#[Title('Relatorio por Equipe')]
 class TeamReport extends Component
 {
     public ?int $teamId = null;
@@ -31,7 +31,7 @@ class TeamReport extends Component
     {
         return $this->teamId ? Team::with([
             'competition',
-            'stageProgress.stage.proof',
+            'stageProgress.stage',
             'audios',
             'progress',
         ])->find($this->teamId) : null;
@@ -46,12 +46,12 @@ class TeamReport extends Component
 
         return response()->streamDownload(function () use ($team) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Prova', 'Etapa', 'Status', 'Pontuação', 'Tempo (s)', 'Tentativas']);
+            fputcsv($handle, ['Etapa', 'Tipo', 'Status', 'Pontuacao', 'Tempo (s)', 'Tentativas']);
 
-            foreach ($team->stageProgress()->with('stage.proof')->orderBy('stage_id')->get() as $sp) {
+            foreach ($team->stageProgress()->with('stage')->orderBy('stage_id')->get() as $sp) {
                 fputcsv($handle, [
-                    $sp->stage?->proof?->name ?? '—',
                     $sp->stage?->name ?? '—',
+                    $sp->stage?->stage_type ?? '—',
                     $sp->status,
                     $sp->score_earned ?? 0,
                     $sp->time_spent_seconds ?? 0,
